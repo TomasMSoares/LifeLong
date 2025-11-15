@@ -1,5 +1,20 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import localFont from "next/font/local"
+import { Quicksand } from 'next/font/google'
+
+const quicksand = Quicksand({
+  subsets: ['latin'],
+  weight: ['300', '400', '500', '600', '700'], // choose the weights you need
+  variable: '--font-quicksand' // optional but recommended
+})
+
+
+const myFont = localFont({
+  src: "./fonts/fields-display.otf",
+variable: "--font-fields-display",
+display: "swap",
+})
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -20,7 +35,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased ${myFont.variable} ${quicksand.variable}`}
       >
         {children}
       </body>
