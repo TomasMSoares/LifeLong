@@ -56,7 +56,8 @@ export async function saveDiaryEntry(entryData) {
     // Store the complete LLM response as JSON
     llmResponse: {
       paragraphs: entryData.paragraphs || [],
-      imageParagraphMapping: entryData.imageParagraphMapping || {}
+      imageParagraphMapping: entryData.imageParagraphMapping || {},
+      imageDescriptions: entryData.imageDescriptions || {}
     },
     imageIds: entryData.imageIds || [],
     userName: entryData.userName || 'they',
