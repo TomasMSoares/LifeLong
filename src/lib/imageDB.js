@@ -38,9 +38,10 @@ function openDB() {
  * @param {Blob} imageBlob - The image blob to store
  * @param {string} entryId - Optional diary entry ID to associate with
  * @param {number|null} paragraphIndex - 0-based paragraph index (null if not yet associated)
+ * @param {string|null} description - Short description of the image
  * @returns {Promise<string>} - Returns the generated image ID
  */
-export async function storeImage(imageBlob, entryId = null, paragraphIndex = null) {
+export async function storeImage(imageBlob, entryId = null, paragraphIndex = null, description = null) {
   // Check if entryId already has 6 images
   if (entryId) {
     const existingImages = await getImagesByEntryId(entryId);
@@ -57,6 +58,7 @@ export async function storeImage(imageBlob, entryId = null, paragraphIndex = nul
     blob: imageBlob,
     entryId,
     paragraphIndex, // null = unassociated, 0+ = paragraph position
+    description, // Short one-sentence description
     timestamp: Date.now(),
     size: imageBlob.size,
     type: imageBlob.type,
@@ -75,12 +77,13 @@ export async function storeImage(imageBlob, entryId = null, paragraphIndex = nul
 }
 
 /**
- * Update paragraph association for an image
+ * Update paragraph association and/or description for an image
  * @param {string} imageId - The image ID
  * @param {number|null} paragraphIndex - The paragraph index (null to unassociate)
+ * @param {string|null} description - Optional description to update
  * @returns {Promise<void>}
  */
-export async function updateImageParagraph(imageId, paragraphIndex) {
+export async function updateImageParagraph(imageId, paragraphIndex, description = null) {
   const db = await openDB();
 
   return new Promise(async (resolve, reject) => {
@@ -98,8 +101,11 @@ export async function updateImageParagraph(imageId, paragraphIndex) {
           return;
         }
 
-        // Update field
+        // Update fields
         imageRecord.paragraphIndex = paragraphIndex;
+        if (description !== null) {
+          imageRecord.description = description;
+        }
 
         // Save back
         const transaction2 = db.transaction([STORE_NAME], 'readwrite');

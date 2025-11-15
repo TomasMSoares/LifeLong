@@ -27,8 +27,9 @@ Input: "Um, so today I, uh, went to the park with my grandson Tommy and we, we f
 Output: "Margaret visited the park today with her beloved grandson Tommy. Together, they fed the ducks by the pond and enjoyed their time together."`;
 
 // User prompt part 1: Transcript cleanup instructions
-export const TRANSCRIPT_CLEANUP_PROMPT = `Transform the following spoken diary entry into a warm, third-person narrative. The speaker's name is {userName}.
-
+export const TRANSCRIPT_CLEANUP_PROMPT =
+`FIRST TASK:
+Transform the following spoken diary entry into a warm, third-person narrative. The speaker's name is {userName}.
 Split the narrative into logical paragraphs (1-3 sentences each). Keep the warmth and clarity. Remove filler words but preserve all meaningful details and emotions.
 
 RAW_TRANSCRIPT:
@@ -39,12 +40,20 @@ export const IMAGE_MAPPING_PROMPT = `
 IMAGES PROVIDED: {imageCount} image(s) have been uploaded with the following IDs:
 {imageIdList}
 
-ADDITIONAL TASK:
+SECOND TASK:
 - Analyze the provided images in relation to the diary narrative
 - Determine which paragraph each image relates to most naturally
 - Return BOTH the paragraphs AND the image-to-paragraph mapping
 - Use the image IDs listed above and map them to paragraph indices (0-based)
 - Each paragraph may have 0 to 3 images associated to it`;
+
+// User prompt part 3: Image descriptions
+export const IMAGE_DESCRIPTION_PROMPT = `
+FINAL TASK:
+- For each image, provide a super-short one-sentence description (max 10 words)
+- Descriptions should capture the essence of what's shown in the image
+- Use warm, simple language
+- Return image descriptions using the image IDs as keys`;
 
 // Helper to format cleanup-only prompt (no images)
 export function formatCleanupPrompt(transcript, userName = 'they') {
@@ -71,6 +80,9 @@ export function formatGenerateEntryPrompt(transcript, userName = 'they', imageId
   userPrompt += IMAGE_MAPPING_PROMPT
     .replace('{imageCount}', imageIds.length.toString())
     .replace('{imageIdList}', imageIdList);
+  
+  // Append image description prompt
+  userPrompt += IMAGE_DESCRIPTION_PROMPT;
   
   // Combine system prompt with combined user prompts
   return `${SYSTEM_PROMPT}\n\n---\n\n${userPrompt}`;

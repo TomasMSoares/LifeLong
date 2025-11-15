@@ -26,6 +26,7 @@ export async function generateDiaryEntry(transcript, userName, imageData = []) {
   
   return {
     paragraphs: data.paragraphs.map(p => p.trim()).filter(Boolean),
-    imageParagraphMapping: data.imageParagraphMapping || {}
+    imageParagraphMapping: data.imageParagraphMapping || {},
+    imageDescriptions: data.imageDescriptions || {}
   };
 }
