@@ -1,7 +1,7 @@
 # GitHub Copilot Instructions for Memory Road
 
 ## Project Overview
-Memory Road is a 24-hour hackathon project that helps elderly people create beautiful AI-powered diary entries. Users speak about their day, upload photos, and AI generates a warm, personal narrative displayed on an interactive road visualization.
+Memory Road is a 24-hour hackathon project that helps people of all ages (including the Elderly) create beautiful AI-powered diary entries. Users speak about their day, upload photos, and AI generates a warm, personal narrative displayed on an interactive road visualization.
 
 ## Code Style & Conventions
 
