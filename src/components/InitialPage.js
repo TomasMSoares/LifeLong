@@ -32,7 +32,7 @@ export default function InitialPage() {
         className={`
           fixed inset-0 z-30
           flex flex-col items-center justify-center
-          transition-opacity duration-300 mt-20 pl-[4px] pr-[4px] bg-white
+          transition-opacity duration-300 bg-white
         `}
         style={{ opacity: opacity / 100, backgroundColor: `rgba(255,255,255,${opacity/100})` }}
       >
