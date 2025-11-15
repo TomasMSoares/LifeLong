@@ -28,8 +28,8 @@ export default function VoiceRecorder({ onAudioRecorded, onTranscript }) {
           if (onTranscript) onTranscript(transcript);
         }
       } catch (err) {
-        console.error('Transcription error:', err);
-        alert('Sorry, we could not understand the recording. Please try again.');
+        console.error('Processing error:', err);
+        alert('Sorry, something went wrong while processing your recording.');
       } finally {
         setLoading(false);
       }
