@@ -41,6 +41,14 @@ function openDB() {
  * @returns {Promise<string>} - Returns the generated image ID
  */
 export async function storeImage(imageBlob, entryId = null, paragraphIndex = null) {
+  // Check if entryId already has 6 images
+  if (entryId) {
+    const existingImages = await getImagesByEntryId(entryId);
+    if (existingImages.length >= 6) {
+      throw new Error('Maximum of 6 images per diary entry reached');
+    }
+  }
+  
   const db = await openDB();
   const id = `img-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
   
