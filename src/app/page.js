@@ -22,6 +22,10 @@ export default function Home() {
     const newEntry = await saveEntry(voiceText, images);
     setEntries([...entries, newEntry]);
     setShowCreate(false);
+    // Open the newly created entry in detail modal
+    setTimeout(() => {
+      setSelectedEntry(newEntry);
+    }, 300); // Small delay for smooth transition
   };
 
   return (

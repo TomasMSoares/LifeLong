@@ -83,8 +83,8 @@ const AddMemoryNode = memo(function AddMemoryNode({ onClick }) {
           {/* Curved "ADD MEMORY" text */}
           <CurvedText
             text="ADD MEMORY"
-            radius={NODE_RADIUS * 1.6}
-            fontSize={14}
+            radius={NODE_RADIUS * 1.7}
+            fontSize={20}
             className="text-terracotta font-bold"
           />
 
@@ -259,11 +259,17 @@ export default function RoadCanvas({ entries, onEntryClick }) {
   const timelineRef = useRef(null);
   const lastDistanceRef = useRef(0);
 
-  // Memoize positions to prevent recalculation
-  const positions = useMemo(() => [
-    { entry: null, isCurrent: true },
-    ...entries.map((entry) => ({ entry, isCurrent: false }))
-  ], [entries]);
+  // Memoize positions to prevent recalculation - sorted by date (newest first)
+  const positions = useMemo(() => {
+    const sortedEntries = [...entries].sort((a, b) => 
+      new Date(b.date) - new Date(a.date)
+    );
+    
+    return [
+      { entry: null, isCurrent: true },
+      ...sortedEntries.map((entry) => ({ entry, isCurrent: false }))
+    ];
+  }, [entries]);
 
   // Handle pinch zoom
   const handleTouchStart = useCallback((e) => {
@@ -367,7 +373,7 @@ export default function RoadCanvas({ entries, onEntryClick }) {
             ))}
 
             {/* Bottom padding for comfortable scrolling */}
-            <div className="h-96" />
+            <div className="h-20" />
           </div>
         </div>
       </div>
