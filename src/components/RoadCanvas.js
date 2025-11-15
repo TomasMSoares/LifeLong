@@ -6,7 +6,7 @@ import Image from 'next/image';
 const NODE_SPACING = 220;
 const NODE_RADIUS = 70;
 const MIN_SCALE = 0.5;
-const MAX_SCALE = 1.5;
+const MAX_SCALE = 1.0;
 
 // Curved text component
 function CurvedText({ text, radius, fontSize = 16, className = '' }) {
@@ -55,7 +55,7 @@ const AddMemoryNode = memo(function AddMemoryNode({ onClick }) {
         className="relative flex items-center justify-center transition-transform hover:scale-105 touch-manipulation"
       >
         {/* Main circle */}
-        <div className={`relative bg-white rounded-full border-8 border-blue-500 shadow-lg flex items-center justify-center ${isHovered ? 'border-blue-600' : 'border-blue-500'}`}
+        <div className={`relative bg-white rounded-full border-8 border-terracotta shadow-lg flex items-center justify-center ${isHovered ? 'border-softBrown' : 'border-terracotta'}`}
           style={{ width: `${NODE_RADIUS * 2.8}px`, height: `${NODE_RADIUS * 2.8}px` }}
         >
           {/* Curved "ADD MEMORY" text */}
@@ -63,7 +63,7 @@ const AddMemoryNode = memo(function AddMemoryNode({ onClick }) {
             text="ADD MEMORY"
             radius={NODE_RADIUS * 1.6}
             fontSize={14}
-            className="text-blue-500"
+            className="text-terracotta"
           />
 
           {/* Heart icon */}
@@ -75,6 +75,11 @@ const AddMemoryNode = memo(function AddMemoryNode({ onClick }) {
               height={64}
               className="object-contain"
             />
+          </div>
+
+          {/* Plus button overlay */}
+          <div className="absolute -right-3 bottom-2 w-12 h-12 bg-terracotta rounded-full flex items-center justify-center shadow-lg">
+            <span className="text-white text-3xl font-bold leading-none pb-0.5">+</span>
           </div>
         </div>
       </button>
@@ -100,7 +105,7 @@ const EntryNode = memo(function EntryNode({ entry, onClick }) {
   }, [onClick, entry]);
 
   return (
-    <div className="relative flex items-center justify-center py-5">
+    <div className="relative flex items-center justify-center pt-8 pb-5">
       <button
         onClick={handleClick}
         onMouseEnter={() => setIsHovered(true)}
@@ -110,7 +115,7 @@ const EntryNode = memo(function EntryNode({ entry, onClick }) {
         {/* Main circle */}
         <div
           className={`relative bg-white rounded-full border-8 shadow-lg flex items-center justify-center transition-all ${
-            isHovered ? 'border-blue-600' : 'border-blue-500'
+            isHovered ? 'border-softBrown' : 'border-terracotta'
           }`}
           style={{ width: `${NODE_RADIUS * 2}px`, height: `${NODE_RADIUS * 2}px` }}
         >
@@ -119,13 +124,13 @@ const EntryNode = memo(function EntryNode({ entry, onClick }) {
             text={dateText}
             radius={NODE_RADIUS * 1.2}
             fontSize={14}
-            className="text-blue-500"
+            className="text-terracotta"
           />
 
           {/* Diary icon */}
           <div className="relative w-16 h-16">
             <Image
-              src="/diary-svgrepo-com.svg"
+              src="/page.svg"
               alt="Memory"
               width={64}
               height={64}
@@ -145,7 +150,7 @@ function DottedLine({ isAddMemory }) {
   return (
     <div className="flex flex-col items-center gap-2">
       {[...Array(dots)].map((_, i) => (
-        <div key={i} className="w-3 h-3 bg-blue-500 rounded-full" />
+        <div key={i} className="w-3 h-3 bg-terracotta rounded-full" />
       ))}
     </div>
   );
@@ -207,8 +212,12 @@ export default function RoadCanvas({ entries, onEntryClick }) {
   }, []);
 
   // Reset/toggle zoom
-  const handleResetZoom = useCallback(() => {
-    setScale((prev) => prev === 1.0 ? MIN_SCALE : 1.0);
+  const handleZoomIn = useCallback(() => {
+    setScale((prev) => Math.min(MAX_SCALE, prev + 0.5));
+  }, []);
+
+  const handleZoomOut = useCallback(() => {
+    setScale((prev) => Math.max(MIN_SCALE, prev - 0.5));
   }, []);
 
   // Auto-scroll to top on mount
@@ -219,7 +228,7 @@ export default function RoadCanvas({ entries, onEntryClick }) {
   }, []);
 
   return (
-    <div className="relative w-full h-full overflow-hidden bg-[#F5E6D3]">
+    <div className="relative w-full h-full overflow-hidden bg-cream">
       {/* Scrollable container with momentum */}
       <div
         ref={scrollContainerRef}
@@ -236,7 +245,7 @@ export default function RoadCanvas({ entries, onEntryClick }) {
         {/* Scalable timeline wrapper */}
         <div
           ref={timelineRef}
-          className="relative min-h-full flex flex-col items-center px-6 py-12 transition-transform duration-200"
+          className="relative min-h-full flex flex-col items-center px-6 pt-50 transition-transform duration-200"
           style={{
             transform: `scale(${scale})`,
             transformOrigin: 'top center',
@@ -266,28 +275,35 @@ export default function RoadCanvas({ entries, onEntryClick }) {
         </div>
       </div>
 
-      {/* Zoom control buttons */}
-      {scale !== 1.0 && (
-        <button
-          onClick={handleResetZoom}
-          className="absolute bottom-10 left-10 bg-blue-500 hover:bg-blue-600 text-white font-bold px-6 py-4 rounded-full shadow-lg transition-all duration-200 text-lg touch-manipulation"
-        >
-          Reset Zoom
-        </button>
-      )}
-
-      {scale === 1.0 && (
-        <button
-          onClick={handleResetZoom}
-          className="absolute bottom-10 left-10 bg-blue-500 hover:bg-blue-600 text-white font-bold px-6 py-4 rounded-full shadow-lg transition-all duration-200 text-lg touch-manipulation"
-        >
-          Zoom Out
-        </button>
-      )}
-
-      {/* Zoom instructions (hidden on mobile) */}
-      <div className="hidden md:block absolute top-4 right-4 bg-black/20 text-white px-3 py-1 rounded-full text-xs">
-        Ctrl + Scroll to zoom
+      {/* Zoom control button */}
+      <div className="fixed bottom-10 right-10">
+        {scale < MAX_SCALE ? (
+          /* Zoom In button */
+          <button
+            onClick={handleZoomIn}
+            className="w-14 h-14 bg-terracotta hover:bg-softBrown text-white font-bold rounded-full shadow-lg transition-all duration-200 flex items-center justify-center touch-manipulation"
+            aria-label="Zoom in"
+          >
+            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <circle cx="11" cy="11" r="8" strokeWidth="2"/>
+              <path d="M21 21l-4.35-4.35" strokeWidth="2" strokeLinecap="round"/>
+              <path d="M11 8v6M8 11h6" strokeWidth="2" strokeLinecap="round"/>
+            </svg>
+          </button>
+        ) : (
+          /* Zoom Out button */
+          <button
+            onClick={handleZoomOut}
+            className="w-14 h-14 bg-terracotta hover:bg-softBrown text-white font-bold rounded-full shadow-lg transition-all duration-200 flex items-center justify-center touch-manipulation"
+            aria-label="Zoom out"
+          >
+            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <circle cx="11" cy="11" r="8" strokeWidth="2"/>
+              <path d="M21 21l-4.35-4.35" strokeWidth="2" strokeLinecap="round"/>
+              <path d="M8 11h6" strokeWidth="2" strokeLinecap="round"/>
+            </svg>
+          </button>
+        )}
       </div>
     </div>
   );
