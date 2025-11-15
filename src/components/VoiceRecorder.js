@@ -4,18 +4,35 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { startRecording, stopRecording } from '@/lib/voiceRecorder';
+import { transcribeWithElevenLabs } from '@/lib/transcription';
 
-export default function VoiceRecorder({ onTranscript }) {
+export default function VoiceRecorder({ onAudioRecorded, onTranscript }) {
   const [isRecording, setIsRecording] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const handleToggle = async () => {
-    if (isRecording) {
-      const transcript = await stopRecording();
-      onTranscript(transcript);
-      setIsRecording(false);
-    } else {
+  const handleToggleRecording = async () => {
+    if (!isRecording) {
       await startRecording();
       setIsRecording(true);
+    } else {
+      setLoading(true);
+      setIsRecording(false);
+      const audioBlob = await stopRecording();
+
+      try {
+        if (audioBlob && onAudioRecorded) {
+          onAudioRecorded(audioBlob);
+        }
+        if (audioBlob) {
+          const { transcript } = await transcribeWithElevenLabs(audioBlob, { languageCode: 'en' });
+          if (onTranscript) onTranscript(transcript);
+        }
+      } catch (err) {
+        console.error('Processing error:', err);
+        alert('Sorry, something went wrong while processing your recording.');
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
@@ -24,11 +41,12 @@ export default function VoiceRecorder({ onTranscript }) {
       <h3 className="text-lg font-semibold text-softBrown mb-4">Tell us about your day</h3>
 
       <Button
-        onClick={handleToggle}
+        onClick={handleToggleRecording}
         variant={isRecording ? "destructive" : "default"}
         className="w-full"
+        disabled={loading}
       >
-        {isRecording ? '⏹ Stop Recording' : '🎤 Start Recording'}
+        {isRecording ? '⏹ Stop Recording' : loading ? '⏳ Processing...' : '🎤 Start Recording'}
       </Button>
 
       {isRecording && (
