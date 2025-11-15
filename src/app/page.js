@@ -33,8 +33,9 @@ export default function Home() {
         entries={entries}
         onEntryClick={(entry) => {
           if (entry === null) {
-            // Clicked ADD MEMORY button
-            setShowCreate(true);
+            setTimeout(() => {
+              setShowCreate(true);
+            }, 300);
           } else {
             // Clicked an existing entry
             setSelectedEntry(entry);
