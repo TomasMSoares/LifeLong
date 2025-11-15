@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 
 export default function InitialPage() {
   const [isFading, setIsFading] = useState(false);     // starts false
-  const [opacity, setOpacity] = useState(90);          // starts at 90
+  const [opacity, setOpacity] = useState(98);          // starts at 90
   const [visible, setVisible] = useState(true);        // rendered initially
 
   useEffect(() => {
@@ -32,7 +32,7 @@ export default function InitialPage() {
         className={`
           fixed inset-0 z-30
           flex flex-col items-center justify-center
-          transition-opacity duration-300 mt-20 pl-[4px] pr-[4px] bg-white
+          transition-opacity duration-300 bg-white
         `}
         style={{ opacity: opacity / 100, backgroundColor: `rgba(255,255,255,${opacity/100})` }}
       >

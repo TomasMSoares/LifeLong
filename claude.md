@@ -48,11 +48,13 @@ src/
     └── roadRenderer.js      # PixiJS rendering
 ```
 
+**Package Manager**: Always use pnpm.
+
 ### 4. Technology Stack
 - **Framework**: Next.js 14+ (App Router, JavaScript NOT TypeScript)
 - **UI Library**: ShadCN (shadcn/ui)
-- **Styling**: Tailwind CSS
-- **2D Graphics**: PixiJS (for the interactive road)
+- **Styling**: Tailwind CSS + CSS Animations
+- **Interactive Timeline**: Pure React + CSS Transforms (NO PixiJS - KISS principle!)
 - **AI**: Claude API (Anthropic)
 - **Voice**: Web Speech API or Whisper
 - **Storage**: localStorage (for hackathon speed)
@@ -61,13 +63,15 @@ src/
 
 **IMPORTANT**: The `llm-docs/` directory contains useful framework-specific documentation.
 
-**When working with framework-specific code (especially PixiJS), ALWAYS:**
-1. Check if relevant documentation exists in `llm-docs/`
-2. Read and reference the docs before generating code
-3. Follow patterns and best practices from the documentation
-4. Use up-to-date APIs and methods shown in the docs
+**When working with interactive visualizations:**
+1. Prefer CSS transforms over heavy libraries (KISS principle!)
+2. Use `transform: translateY()` for panning
+3. Use `transform: scale()` for zooming
+4. Use CSS keyframe animations for effects
+5. Native browser events work great for touch/mouse
+6. Keep bundle size small - avoid WebGL/Canvas libraries unless absolutely necessary
 
-Example: Before implementing PixiJS road rendering, check for PixiJS docs in `llm-docs/` first.
+Example: The timeline uses pure CSS transforms for zoom/pan, avoiding PixiJS complexity.
 
 ### 6. Design System
 
