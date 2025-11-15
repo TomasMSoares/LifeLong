@@ -5,6 +5,8 @@ import RoadCanvas from '@/components/RoadCanvas';
 import CreateEntryModal from '@/components/CreateEntryModal';
 import EntryDetailModal from '@/components/EntryDetailModal';
 import { loadEntries, saveEntry } from '@/lib/storage';
+import AppHeader from '@/components/AppHeader';
+import InitialPage from '@/components/InitialPage';
 
 export default function Home() {
   const [entries, setEntries] = useState([]);
@@ -24,6 +26,8 @@ export default function Home() {
 
   return (
     <div className="h-screen">
+      <InitialPage/>
+
       {/* Main Canvas */}
       <RoadCanvas
         entries={entries}

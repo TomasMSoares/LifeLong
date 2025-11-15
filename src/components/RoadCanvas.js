@@ -20,8 +20,8 @@ function CurvedText({ text, radius, fontSize = 16, className = '' }) {
     <div className="absolute inset-0 pointer-events-none">
       {chars.map((char, i) => {
         const angle = startAngle + (i * angleStep);
-        const x = radius * Math.cos((angle * Math.PI) / 180);
-        const y = radius * Math.sin((angle * Math.PI) / 180);
+        const x = Math.round(radius * Math.cos((angle * Math.PI) / 180));
+        const y = Math.round(radius * Math.sin((angle * Math.PI) / 180));
 
         return (
           <span
@@ -167,10 +167,10 @@ export default function RoadCanvas({ entries, onEntryClick }) {
   const handleTouchStart = useCallback((e) => {
     if (e.touches.length === 2) {
       e.preventDefault();
-      const distance = Math.hypot(
+      const distance = Math.round(Math.hypot(
         e.touches[1].clientX - e.touches[0].clientX,
         e.touches[1].clientY - e.touches[0].clientY
-      );
+      ));
       lastDistanceRef.current = distance;
     }
   }, []);
@@ -179,10 +179,10 @@ export default function RoadCanvas({ entries, onEntryClick }) {
     if (e.touches.length === 2) {
       e.preventDefault();
 
-      const distance = Math.hypot(
+      const distance = Math.round(Math.hypot(
         e.touches[1].clientX - e.touches[0].clientX,
         e.touches[1].clientY - e.touches[0].clientY
-      );
+      ));
 
       if (lastDistanceRef.current > 0) {
         const delta = (distance - lastDistanceRef.current) * 0.01;
