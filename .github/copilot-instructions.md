@@ -32,7 +32,11 @@ import { Card } from '@/components/ui/card';
 - **Documentation**: `/llm-docs/` - Framework-specific documentation (CHECK HERE FIRST!)
 
 ### Documentation Resources
-**CRITICAL**: Before generating framework-specific code (especially PixiJS), check the `llm-docs/` directory for helpful documentation files. Always reference these docs to ensure you're using current APIs and best practices.
+**CRITICAL**: Before generating framework-specific code, check the `llm-docs/` directory for helpful documentation files. Always reference these docs to ensure you're using current APIs and best practices.
+
+**Interactive Visualizations**: Use pure React + CSS transforms instead of heavy libraries like PixiJS. CSS `transform`, `scale()`, and keyframe animations are sufficient for most use cases and keep bundle size small.
+
+**Package Manager**: Always use pnpm.
 
 ### Styling Rules
 - Use Tailwind CSS classes exclusively
