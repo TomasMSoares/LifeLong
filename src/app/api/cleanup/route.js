@@ -13,8 +13,9 @@ const DEFAULT_MODEL = process.env.GEMINI_MODEL_ID || 'gemini-2.5-flash';
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
 // Define Zod schema for structured output: array of paragraph strings
-const paragraphsSchema = z.array(z.string().describe('A single cleaned, warm, readable diary paragraph.'))
-  .describe('List of cleaned narrative diary paragraphs.');
+const paragraphsSchema = z.object({
+  paragraphs: z.array(z.string().describe('A single cleaned, warm, readable diary paragraph.'))
+}).describe('List of cleaned narrative diary paragraphs in order.');
 
 export async function POST(request) {
   try {
@@ -41,24 +42,21 @@ export async function POST(request) {
       model: DEFAULT_MODEL,
       contents: userPrompt, // Combined system + user prompt as plain string
       config: {
-        temperature: 0.6,
-        maxOutputTokens: 1024,
         responseMimeType: 'application/json',
         responseJsonSchema: jsonSchema,
       },
     });
 
     const rawText = response.text || '[]';
-    console.log('Gemini raw response:', rawText);
     
     let paragraphs;
     try {
       const parsed = JSON.parse(rawText);
-      console.log('Parsed JSON:', parsed);
       
       // Validate with Zod
       const validated = paragraphsSchema.parse(parsed);
-      paragraphs = validated.map(p => p.trim()).filter(Boolean);
+
+      paragraphs = validated.paragraphs.map(p => p.trim()).filter(Boolean);
     } catch (parseErr) {
       console.error('Schema validation failed, using fallback:', parseErr);
       console.error('Raw text was:', rawText);
