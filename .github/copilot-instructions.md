@@ -29,6 +29,10 @@ import { Card } from '@/components/ui/card';
 - **Utils**: `/src/lib/` - Pure functions, no React
 - **API Routes**: `/src/app/api/` - Server-side endpoints
 - **Single page**: `/src/app/page.js` - Main application (NO OTHER PAGES)
+- **Documentation**: `/llm-docs/` - Framework-specific documentation (CHECK HERE FIRST!)
+
+### Documentation Resources
+**CRITICAL**: Before generating framework-specific code (especially PixiJS), check the `llm-docs/` directory for helpful documentation files. Always reference these docs to ensure you're using current APIs and best practices.
 
 ### Styling Rules
 - Use Tailwind CSS classes exclusively

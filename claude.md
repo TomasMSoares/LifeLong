@@ -57,7 +57,19 @@ src/
 - **Voice**: Web Speech API or Whisper
 - **Storage**: localStorage (for hackathon speed)
 
-### 5. Design System
+### 5. Documentation Resources
+
+**IMPORTANT**: The `llm-docs/` directory contains useful framework-specific documentation.
+
+**When working with framework-specific code (especially PixiJS), ALWAYS:**
+1. Check if relevant documentation exists in `llm-docs/`
+2. Read and reference the docs before generating code
+3. Follow patterns and best practices from the documentation
+4. Use up-to-date APIs and methods shown in the docs
+
+Example: Before implementing PixiJS road rendering, check for PixiJS docs in `llm-docs/` first.
+
+### 6. Design System
 
 **Color Palette** (Warm & Cozy):
 ```javascript
