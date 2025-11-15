@@ -4,8 +4,9 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { startRecording, stopRecording } from '@/lib/voiceRecorder';
+import { transcribeWithElevenLabs } from '@/lib/transcription';
 
-export default function VoiceRecorder({ onAudioRecorded }) {
+export default function VoiceRecorder({ onAudioRecorded, onTranscript }) {
   const [isRecording, setIsRecording] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -17,10 +18,20 @@ export default function VoiceRecorder({ onAudioRecorded }) {
       setLoading(true);
       setIsRecording(false);
       const audioBlob = await stopRecording();
-      setLoading(false);
 
-      if (audioBlob) {
-        onAudioRecorded(audioBlob);
+      try {
+        if (audioBlob && onAudioRecorded) {
+          onAudioRecorded(audioBlob);
+        }
+        if (audioBlob) {
+          const { transcript } = await transcribeWithElevenLabs(audioBlob, { languageCode: 'en' });
+          if (onTranscript) onTranscript(transcript);
+        }
+      } catch (err) {
+        console.error('Transcription error:', err);
+        alert('Sorry, we could not understand the recording. Please try again.');
+      } finally {
+        setLoading(false);
       }
     }
   };
