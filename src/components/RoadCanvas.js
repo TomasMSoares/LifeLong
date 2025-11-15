@@ -155,7 +155,7 @@ const EntryNode = memo(function EntryNode({ entry, onClick }) {
       >
         {/* Glowing memory orb */}
         <div
-          className={`relative rounded-full border-6 overflow-hidden flex items-center justify-center transition-all float ${isHovered ? 'border-goldenrod' : 'border-terracotta'}`}
+          className={`relative rounded-full border-6 flex items-center justify-center transition-all float ${isHovered ? 'border-goldenrod' : 'border-terracotta'}`}
           style={{
             width: `${NODE_RADIUS * 2}px`,
             height: `${NODE_RADIUS * 2}px`,
