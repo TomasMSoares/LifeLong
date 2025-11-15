@@ -45,29 +45,51 @@ function CurvedText({ text, radius, fontSize = 16, className = '' }) {
 // Add Memory node (top node with heart and + button) - Memoized
 const AddMemoryNode = memo(function AddMemoryNode({ onClick }) {
   const [isHovered, setIsHovered] = useState(false);
+  const [isClicked, setIsClicked] = useState(false);
+
+  const handleClick = useCallback(() => {
+    setIsClicked(true);
+    setTimeout(() => setIsClicked(false), 300);
+    if (onClick) onClick();
+  }, [onClick]);
 
   return (
     <div className="relative flex items-center justify-center py-5">
       <button
-        onClick={onClick}
+        onClick={handleClick}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
-        className="relative flex items-center justify-center transition-transform hover:scale-105 touch-manipulation"
+        className="relative flex items-center justify-center transition-transform hover:scale-110 touch-manipulation"
       >
-        {/* Main circle */}
-        <div className={`relative bg-white rounded-full border-8 border-terracotta shadow-lg flex items-center justify-center ${isHovered ? 'border-softBrown' : 'border-terracotta'}`}
-          style={{ width: `${NODE_RADIUS * 2.8}px`, height: `${NODE_RADIUS * 2.8}px` }}
+        {/* Click ripple effect */}
+        {isClicked && (
+          <div className="absolute inset-0 pointer-events-none">
+            <div
+              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full rounded-full border-4 border-terracotta"
+              style={{ animation: 'click-ripple 0.6s ease-out' }}
+            />
+          </div>
+        )}
+
+        {/* Main circle with enhanced glow */}
+        <div
+          className={`relative bg-white rounded-full border-8 flex items-center justify-center animate-add-memory-glow ${isClicked ? 'animate-click-burst' : ''} ${isHovered ? 'border-goldenrod' : 'border-terracotta'}`}
+          style={{
+            width: `${NODE_RADIUS * 2.8}px`,
+            height: `${NODE_RADIUS * 2.8}px`,
+            background: 'radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 1), rgba(255, 248, 231, 0.98) 50%, rgba(224, 122, 95, 0.15))'
+          }}
         >
           {/* Curved "ADD MEMORY" text */}
           <CurvedText
             text="ADD MEMORY"
             radius={NODE_RADIUS * 1.6}
             fontSize={14}
-            className="text-terracotta"
+            className="text-terracotta font-bold"
           />
 
           {/* Heart icon */}
-          <div className="relative w-16 h-16">
+          <div className="relative w-16 h-16 z-10">
             <Image
               src="/heart-svgrepo-com.svg"
               alt="Add Memory"
@@ -77,9 +99,26 @@ const AddMemoryNode = memo(function AddMemoryNode({ onClick }) {
             />
           </div>
 
-          {/* Plus button overlay */}
-          <div className="absolute -right-3 bottom-2 w-12 h-12 bg-terracotta rounded-full flex items-center justify-center shadow-lg">
+          {/* Plus button overlay with pulse */}
+          <div className="absolute -right-3 bottom-2 w-12 h-12 bg-terracotta rounded-full flex items-center justify-center shadow-lg z-50">
             <span className="text-white text-3xl font-bold leading-none pb-0.5">+</span>
+          </div>
+
+          {/* Inner shimmer */}
+          <div
+            className="absolute inset-0 overflow-hidden rounded-full pointer-events-none"
+            style={{ opacity: 0.3 }}
+          >
+            <div
+              className="absolute inset-0 animate-shimmer"
+              style={{
+                width: '50%',
+                height: '200%',
+                background: 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.9), transparent)',
+                left: '-50%',
+                animationDelay: '1s',
+              }}
+            />
           </div>
         </div>
       </button>
@@ -87,7 +126,7 @@ const AddMemoryNode = memo(function AddMemoryNode({ onClick }) {
   );
 });
 
-// Regular entry node with diary icon and date - Memoized
+// Regular entry node with glowing memory orb - Memoized
 const EntryNode = memo(function EntryNode({ entry, onClick }) {
   const [isHovered, setIsHovered] = useState(false);
 
@@ -104,37 +143,95 @@ const EntryNode = memo(function EntryNode({ entry, onClick }) {
     if (onClick) onClick(entry);
   }, [onClick, entry]);
 
+  const hasImage = entry.images && entry.images.length > 0;
+
   return (
     <div className="relative flex items-center justify-center pt-8 pb-5">
       <button
         onClick={handleClick}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
-        className="relative flex items-center justify-center transition-transform hover:scale-105 touch-manipulation"
+        className="relative flex items-center justify-center transition-transform hover:scale-110 touch-manipulation"
       >
-        {/* Main circle */}
+        {/* Glowing memory orb */}
         <div
-          className={`relative bg-white rounded-full border-8 shadow-lg flex items-center justify-center transition-all ${
-            isHovered ? 'border-softBrown' : 'border-terracotta'
-          }`}
-          style={{ width: `${NODE_RADIUS * 2}px`, height: `${NODE_RADIUS * 2}px` }}
+          className={`relative rounded-full border-6 overflow-hidden flex items-center justify-center transition-all float ${isHovered ? 'border-goldenrod' : 'border-terracotta'}`}
+          style={{
+            width: `${NODE_RADIUS * 2}px`,
+            height: `${NODE_RADIUS * 2}px`,
+            background: hasImage
+              ? 'radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.9), rgba(255, 248, 231, 0.95) 50%, rgba(224, 122, 95, 0.3))'
+              : 'radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.95), rgba(255, 248, 231, 0.9) 50%, rgba(224, 122, 95, 0.4))',
+          }}
         >
+          {/* Image inside orb (if exists) */}
+          {hasImage ? (
+            <div className="absolute inset-0 rounded-full overflow-hidden">
+              <img
+                src={entry.images[0]}
+                alt="Memory"
+                className="w-full h-full object-cover opacity-85"
+                style={{
+                  mixBlendMode: 'multiply',
+                }}
+              />
+              {/* Color overlay for glow effect */}
+              <div
+                className="absolute inset-0 rounded-full"
+                style={{
+                  background: 'radial-gradient(circle at 30% 30%, rgba(255, 248, 231, 0.4), transparent 70%)',
+                  pointerEvents: 'none',
+                }}
+              />
+            </div>
+          ) : (
+            /* Fallback: Diary icon with glow */
+            <div className="relative w-16 h-16 z-10">
+              <Image
+                src="/page.svg"
+                alt="Memory"
+                width={64}
+                height={64}
+                className="object-contain opacity-70"
+              />
+            </div>
+          )}
+
           {/* Curved date text */}
-          <CurvedText
-            text={dateText}
-            radius={NODE_RADIUS * 1.2}
-            fontSize={14}
-            className="text-terracotta"
+          <div className="absolute inset-0 z-20">
+            <CurvedText
+              text={dateText}
+              radius={NODE_RADIUS * 1.2}
+              fontSize={14}
+              className="text-terracotta font-bold drop-shadow-md"
+            />
+          </div>
+
+          {/* Sphere highlight effect */}
+          <div
+            className="absolute rounded-full pointer-events-none"
+            style={{
+              top: '10%',
+              left: '15%',
+              width: '40%',
+              height: '40%',
+              background: 'radial-gradient(circle, rgba(255, 255, 255, 0.6), transparent 70%)',
+            }}
           />
 
-          {/* Diary icon */}
-          <div className="relative w-16 h-16">
-            <Image
-              src="/page.svg"
-              alt="Memory"
-              width={64}
-              height={64}
-              className="object-contain"
+          {/* Shimmer sweep effect */}
+          <div
+            className="absolute inset-0 overflow-hidden rounded-full pointer-events-none"
+            style={{ opacity: 0.4 }}
+          >
+            <div
+              className="absolute inset-0 animate-shimmer"
+              style={{
+                width: '50%',
+                height: '200%',
+                background: 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.8), transparent)',
+                left: '-50%',
+              }}
             />
           </div>
         </div>
