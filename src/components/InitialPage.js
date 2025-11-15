@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 
 export default function InitialPage() {
   const [isFading, setIsFading] = useState(false);     // starts false
-  const [opacity, setOpacity] = useState(90);          // starts at 90
+  const [opacity, setOpacity] = useState(98);          // starts at 90
   const [visible, setVisible] = useState(true);        // rendered initially
 
   useEffect(() => {
