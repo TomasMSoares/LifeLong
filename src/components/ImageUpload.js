@@ -5,7 +5,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { storeImage, getImageUrl, deleteImage } from '@/lib/imageDB';
 
-export default function ImageUpload({ onImagesChange, maxImages = 5, initialImageIds = [] }) {
+export default function ImageUpload({ onImagesChange, maxImages = 6, initialImageIds = [] }) {
   const [imageIds, setImageIds] = useState(initialImageIds);
   const [previewUrls, setPreviewUrls] = useState([]);
   const [isCameraOpen, setIsCameraOpen] = useState(false);
