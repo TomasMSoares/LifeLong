@@ -8,19 +8,21 @@ import { zodToJsonSchema } from 'zod-to-json-schema';
 import { formatGenerateEntryPrompt } from '@/lib/prompts';
 
 export const runtime = 'nodejs';
+export const maxDuration = 60; // Allow up to 60 seconds for image processing
 
 const DEFAULT_MODEL = process.env.GEMINI_MODEL_ID || 'gemini-2.5-flash';
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
 // Define Zod schema for structured output: array of paragraph strings
+// Using camelCase for consistency with client-side code
 const outputSchema = z.object({
   paragraphs: z.array(z.string().describe('A single cleaned, warm, readable diary paragraph.'))
     .describe('An array of paragraphs in order of display.'),
-  image_paragraph_mapping: z.record(
+  imageParagraphMapping: z.record(
     z.string().describe('Image ID'),
     z.number().int().min(0).describe('0-based paragraph index - image appears AFTER this paragraph')
   ).describe('Mapping of image IDs to paragraph indices. EVERY image MUST be mapped to exactly one paragraph. Each paragraph may have 0 to 3 images.'),
-  image_descriptions: z.record(
+  imageDescriptions: z.record(
     z.string().describe('Image ID'),
     z.string().max(150).describe('One-sentence description of the image (max 10 words)')
   ).describe('Short descriptions for each image. Use warm, simple language.')
@@ -39,9 +41,31 @@ export async function POST(request) {
     const transcript = body.transcript.trim();
     const userName = body.userName || 'they';
     const imageData = body.imageData || []; // Array of { id, base64 }
+    
+    console.log(`Processing entry: ${transcript.length} chars, ${imageData.length} images, user: ${userName}`);
+    
+    // Validate image data to prevent issues
+    if (imageData.length > 6) {
+      return Response.json({ error: 'Maximum 6 images allowed per entry' }, { status: 400 });
+    }
+    
+    // Check for missing or invalid image IDs
+    const validImageData = imageData.filter(img => {
+      if (!img || !img.id) {
+        console.warn('Skipping image with missing ID');
+        return false;
+      }
+      if (!img.base64 || typeof img.base64 !== 'string') {
+        console.warn(`Skipping image ${img.id} with invalid base64 data`);
+        return false;
+      }
+      return true;
+    });
+    
+    console.log(`Valid images: ${validImageData.length}/${imageData.length}`);
 
     // Format the user prompt with actual values
-    const userPrompt = formatGenerateEntryPrompt(transcript, userName, imageData.map(img => img.id));
+    const userPrompt = formatGenerateEntryPrompt(transcript, userName, validImageData.map(img => img.id));
 
     const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
 
@@ -52,7 +76,7 @@ export async function POST(request) {
     const contentParts = [{ text: userPrompt }];
     
     // Add images as inline data (base64)
-    imageData.forEach(({ id, base64 }) => {
+    validImageData.forEach(({ id, base64 }) => {
       if (base64) {
         // Extract mime type and data from base64 string
         const matches = base64.match(/^data:([^;]+);base64,(.+)$/);
@@ -63,6 +87,9 @@ export async function POST(request) {
               data: matches[2]
             }
           });
+          console.log(`Added image ${id} (${matches[1]})`);
+        } else {
+          console.warn(`Invalid base64 format for image ${id}`);
         }
       }
     });
@@ -79,26 +106,35 @@ export async function POST(request) {
 
     const rawText = response.text || '{}';
     console.log('Gemini raw response:', rawText);
+    console.log('Response length:', rawText.length);
     
     let paragraphs, imageParagraphMapping, imageDescriptions;
     try {
       const parsed = JSON.parse(rawText);
+      console.log('Parsed response keys:', Object.keys(parsed));
       
       // Validate with Zod
       const validated = outputSchema.parse(parsed);
 
       paragraphs = validated.paragraphs.map(p => p.trim()).filter(Boolean);
-      imageParagraphMapping = validated.image_paragraph_mapping || {};
-      imageDescriptions = validated.image_descriptions || {};
+      imageParagraphMapping = validated.imageParagraphMapping || {};
+      imageDescriptions = validated.imageDescriptions || {};
+      
+      console.log('Validated - Paragraphs:', paragraphs.length, 'Images mapped:', Object.keys(imageParagraphMapping).length);
       
       // Validate constraints
-      const providedImageIds = imageData.map(img => img.id);
+      const providedImageIds = validImageData.map(img => img.id);
       const mappedImageIds = Object.keys(imageParagraphMapping);
       
       // Check all images are mapped
       const unmappedImages = providedImageIds.filter(id => !mappedImageIds.includes(id));
       if (unmappedImages.length > 0) {
         console.warn('Warning: Not all images were mapped by LLM:', unmappedImages);
+        // Add unmapped images to first paragraph as fallback
+        unmappedImages.forEach(id => {
+          imageParagraphMapping[id] = 0;
+          imageDescriptions[id] = imageDescriptions[id] || 'A special moment';
+        });
       }
       
       // Check max 3 images per paragraph
@@ -122,10 +158,25 @@ export async function POST(request) {
     }
 
     if (!paragraphs || !paragraphs.length) {
+      console.warn('No valid paragraphs, using fallback');
       paragraphs = fallbackSplit(transcript).map(obj => obj.text);
       imageParagraphMapping = {};
       imageDescriptions = {};
     }
+    
+    // Ensure all images have descriptions
+    validImageData.forEach(({ id }) => {
+      if (!imageDescriptions[id]) {
+        imageDescriptions[id] = 'A precious memory';
+        console.log(`Added default description for image ${id}`);
+      }
+    });
+    
+    console.log('Final response:', {
+      paragraphs: paragraphs.length,
+      imageMappings: Object.keys(imageParagraphMapping).length,
+      imageDescriptions: Object.keys(imageDescriptions).length
+    });
 
     return Response.json({ 
       paragraphs, 
