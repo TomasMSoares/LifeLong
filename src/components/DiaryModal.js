@@ -20,9 +20,9 @@ function getDynamicFontSize(text, isMobile = false) {
     // Base sizes for mobile and desktop
     const baseSize = isMobile ? 0.75 : 1; // rem units
     
-    if (length <= 20) return `${baseSize * 1}rem`; // Short text: full size
-    if (length <= 35) return `${baseSize * 0.85}rem`; // Medium text: slightly smaller
-    if (length <= 50) return `${baseSize * 0.7}rem`; // Long text: smaller
+    if (length <= 30) return `${baseSize * 1}rem`; // Short text: full size
+    if (length <= 50) return `${baseSize * 0.95}rem`; // Medium text: slightly smaller
+    if (length <= 70) return `${baseSize * 0.9}rem`; // Long text: smaller
     return `${baseSize * 0.6}rem`; // Very long text: smallest
 }
 
