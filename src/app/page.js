@@ -19,7 +19,7 @@ export default function Home() {
   const [showCreate, setShowCreate] = useState(false);
   const [selectedEntry, setSelectedEntry] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-
+  const [user, setUser] = useState("USER_PLACEHOLDER");
   // Load entries on mount
   useEffect(() => {
     async function fetchEntries() {
@@ -55,7 +55,7 @@ export default function Home() {
       // Save complete entry to database
       const entryData = {
         date: new Date().toISOString(),
-        userName: "USER_PLACEHOLDER",
+        userName: user,
         transcript,
         imageIds: imageIds || [],
         audioBlob,
@@ -80,7 +80,7 @@ export default function Home() {
 
   return (
     <div className="h-screen">
-      <InitialPage />
+      <InitialPage onSubmit={setUser}/>
 
       {/* Loading State */}
       {isLoading ? (
