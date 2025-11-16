@@ -3,7 +3,7 @@
  * @param {string} transcript Raw transcribed text
  * @param {string} userName User's name for third-person narration
  * @param {Array<{id: string, base64: string}>} imageData Array of image data with IDs and base64
- * @returns {Promise<{paragraphs: string[], imageParagraphMapping: Object}>}
+ * @returns {Promise<{paragraphs: string[], imageParagraphMapping: Object, imageDescriptions: Object}>} Generated entry data
  */
 export async function generateDiaryEntry(transcript, userName, imageData = []) {
   const res = await fetch('/api/generate-entry', {
@@ -26,6 +26,7 @@ export async function generateDiaryEntry(transcript, userName, imageData = []) {
   
   return {
     paragraphs: data.paragraphs.map(p => p.trim()).filter(Boolean),
-    imageParagraphMapping: data.imageParagraphMapping || {}
+    imageParagraphMapping: data.imageParagraphMapping || {},
+    imageDescriptions: data.imageDescriptions || {}
   };
 }

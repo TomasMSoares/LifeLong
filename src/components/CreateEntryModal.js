@@ -22,8 +22,12 @@ const STEPS = {
 
 export default function CreateEntryModal({ open, onClose, onSubmit }) {
   const [step, setStep] = useState(STEPS.VOICE);
-  const [voiceText, setVoiceText] = useState('');
-  const [images, setImages] = useState([]);
+
+  // EntryData State
+  const [transcript, setTranscript] = useState('');
+  const [audioBlob, setAudioBlob] = useState(null);
+  const [imageIds, setImageIds] = useState([]);
+
   const [isRecording, setIsRecording] = useState(false);
   const [isTranscribing, setIsTranscribing] = useState(false);
   const [generatedEntry, setGeneratedEntry] = useState(null);
@@ -33,8 +37,9 @@ export default function CreateEntryModal({ open, onClose, onSubmit }) {
     if (!open) {
       setTimeout(() => {
         setStep(STEPS.VOICE);
-        setVoiceText('');
-        setImages([]);
+        setTranscript('');
+        setAudioBlob(null);
+        setImageIds([]);
         setIsRecording(false);
         setIsTranscribing(false);
         setGeneratedEntry(null);
@@ -55,7 +60,8 @@ export default function CreateEntryModal({ open, onClose, onSubmit }) {
       try {
         if (audioBlob) {
           const { transcript } = await transcribeWithElevenLabs(audioBlob, { languageCode: 'en' });
-          setVoiceText(transcript);
+          setTranscript(transcript);
+          setAudioBlob(audioBlob);
         }
       } catch (err) {
         console.error('Transcription error:', err);
@@ -67,7 +73,7 @@ export default function CreateEntryModal({ open, onClose, onSubmit }) {
   };
 
   const handleVoiceNext = () => {
-    if (voiceText) {
+    if (transcript) {
       setStep(STEPS.IMAGES);
     }
   };
@@ -86,7 +92,7 @@ export default function CreateEntryModal({ open, onClose, onSubmit }) {
   // Step 3: Generate Entry
   const generateEntry = async () => {
     try {
-      await onSubmit(voiceText, images);
+      await onSubmit(audioBlob, transcript, imageIds);
       setStep(STEPS.PREVIEW);
       // Close modal and parent will open the detail view
       setTimeout(() => {
@@ -175,16 +181,16 @@ export default function CreateEntryModal({ open, onClose, onSubmit }) {
               </div>
 
               {/* Transcript Preview */}
-              {voiceText && (
+              {transcript && (
                 <div className="p-6 bg-cream rounded-lg border-2 border-sage/30 animate-fade-in">
                   <h4 className="text-sm font-semibold text-softBrown mb-2">Your story:</h4>
-                  <p className="text-base text-softBrown leading-relaxed">{voiceText}</p>
+                  <p className="text-base text-softBrown leading-relaxed">{transcript}</p>
                 </div>
               )}
 
               {/* Next Button */}
               <div className="flex gap-3">
-                {voiceText && (
+                {transcript && (
                   <Button
                     onClick={handleVoiceNext}
                     className="flex-1 bg-terracotta hover:bg-terracotta/90 text-lg py-6"
@@ -199,7 +205,7 @@ export default function CreateEntryModal({ open, onClose, onSubmit }) {
           {/* STEP 2: IMAGE UPLOAD */}
           {step === STEPS.IMAGES && (
             <div className="space-y-6 animate-slide-in-right">
-              <ImageUpload onImagesChange={setImages} />
+              <ImageUpload onImagesChange={setImageIds} />
 
               <div className="flex gap-3">
                 <Button

@@ -19,8 +19,12 @@ const outputSchema = z.object({
   image_paragraph_mapping: z.record(
     z.string().describe('Image ID'),
     z.number().int().min(0).describe('0-based paragraph index - image appears AFTER this paragraph')
-  ).describe('Mapping of image IDs to paragraph indices. EVERY image MUST be mapped to exactly one paragraph. Each paragraph may have 0 to 3 images.')
-}).describe('Diary entry with paragraphs and image associations.');
+  ).describe('Mapping of image IDs to paragraph indices. EVERY image MUST be mapped to exactly one paragraph. Each paragraph may have 0 to 3 images.'),
+  image_descriptions: z.record(
+    z.string().describe('Image ID'),
+    z.string().max(150).describe('One-sentence description of the image (max 10 words)')
+  ).describe('Short descriptions for each image. Use warm, simple language.')
+}).describe('Diary entry with paragraphs, image associations, and image descriptions.');
 
 export async function POST(request) {
   try {
@@ -76,7 +80,7 @@ export async function POST(request) {
     const rawText = response.text || '{}';
     console.log('Gemini raw response:', rawText);
     
-    let paragraphs, imageParagraphMapping;
+    let paragraphs, imageParagraphMapping, imageDescriptions;
     try {
       const parsed = JSON.parse(rawText);
       
@@ -85,6 +89,7 @@ export async function POST(request) {
 
       paragraphs = validated.paragraphs.map(p => p.trim()).filter(Boolean);
       imageParagraphMapping = validated.image_paragraph_mapping || {};
+      imageDescriptions = validated.image_descriptions || {};
       
       // Validate constraints
       const providedImageIds = imageData.map(img => img.id);
@@ -113,16 +118,19 @@ export async function POST(request) {
       console.error('Raw text was:', rawText);
       paragraphs = fallbackSplit(transcript).map(obj => obj.text);
       imageParagraphMapping = {}; // No image mapping on fallback
+      imageDescriptions = {}; // No descriptions on fallback
     }
 
     if (!paragraphs || !paragraphs.length) {
       paragraphs = fallbackSplit(transcript).map(obj => obj.text);
       imageParagraphMapping = {};
+      imageDescriptions = {};
     }
 
     return Response.json({ 
       paragraphs, 
-      imageParagraphMapping 
+      imageParagraphMapping,
+      imageDescriptions
     }, { status: 200 });
   } catch (err) {
     console.error('Generate entry route error:', err);
