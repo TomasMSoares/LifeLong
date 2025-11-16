@@ -4,11 +4,11 @@ import { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Card } from '@/components/ui/card';
 import DiaryModal from './DiaryModal';
+import DiaryTopBar from './DiaryTopBar';
+import AudioPlayback from './AudioPlayback';
 import { getImageUrl } from '@/lib/imageDB';
 
 export default function EntryDetailModal({ entry, onClose }) {
@@ -78,11 +78,27 @@ export default function EntryDetailModal({ entry, onClose }) {
 
   return (
     <Dialog open={!!entry} onOpenChange={onClose}>
-      <DialogContent className="bg-[#FFF8E7] border-2 border-[#E07A5F] max-w-4xl max-h-[85vh] overflow-y-auto p-6 sm:p-8 rounded-2xl shadow-2xl">
-        <DialogHeader className="mb-4">
-          <DialogTitle className="text-2xl font-serif text-[#8B7355]">My Memory</DialogTitle>
-        </DialogHeader>
-        <div>
+      <DialogContent 
+        className="bg-[#FFF8E7] border-2 border-[#E07A5F] max-w-4xl max-h-[85vh] p-0 rounded-2xl shadow-2xl overflow-hidden flex flex-col"
+        showCloseButton={false}
+      >
+        {/* Hidden title for accessibility */}
+        <DialogTitle className="sr-only">
+          Diary Entry from {new Date(entry.date).toLocaleDateString()}
+        </DialogTitle>
+
+        {/* Fixed Topbar */}
+        <DiaryTopBar date={entry.date} onClose={onClose} />
+
+        {/* Scrollable Content */}
+        <div className="overflow-y-auto flex-1 px-6 pt-6 pb-12">
+          {/* Audio Playback - outside sticky bar */}
+          {entry.audioBlob && (
+            <div className="mb-6">
+              <AudioPlayback audioBlob={entry.audioBlob} />
+            </div>
+          )}
+
           {isLoadingImages ? (
             <div className="flex justify-center items-center py-12">
               <div className="w-12 h-12 border-4 border-terracotta/20 border-t-terracotta rounded-full animate-spin" />
