@@ -25,7 +25,6 @@ export default function Home() {
   useEffect(() => {
     async function fetchEntries() {
       try {
-        await populateDatabaseWithSamples();
         const allEntries = await getAllDiaryEntries();
         setEntries(allEntries);
       } catch (error) {
