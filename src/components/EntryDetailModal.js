@@ -63,11 +63,13 @@ export default function EntryDetailModal({ entry, onClose }) {
 
   return (
     <Dialog open={!!entry} onOpenChange={onClose}>
-      <DialogContent className="bg-warmBeige border-terracotta max-w-3xl sm:mr-4 sm:ml-4 overflow-y-auto h-[80vh]">
-             <DialogHeader>
-            <DialogTitle></DialogTitle>
-            <DiaryModal paragraphs={paragraphs} images={images} />
-          </DialogHeader>
+      <DialogContent className="bg-[#FFF8E7] border-2 border-[#E07A5F] max-w-4xl overflow-y-auto max-h-[85vh] p-6 sm:p-8 rounded-2xl shadow-2xl">
+        <DialogHeader className="mb-4">
+          <DialogTitle className="text-2xl font-serif text-[#8B7355]">My Memory</DialogTitle>
+        </DialogHeader>
+        <div className="overflow-y-auto pr-2">
+          <DiaryModal paragraphs={paragraphs} images={images} />
+        </div>
       </DialogContent>
     </Dialog>
   );
