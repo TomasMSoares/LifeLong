@@ -1,0 +1,12 @@
+{
+  "functions": {
+    "src/app/api/generate-entry/route.js": {
+      "maxDuration": 60,
+      "memory": 1024
+    },
+    "src/app/api/transcribe/route.js": {
+      "maxDuration": 30,
+      "memory": 512
+    }
+  }
+}

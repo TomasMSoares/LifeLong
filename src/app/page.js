@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import RoadCanvas from '@/components/RoadCanvas';
 import CreateEntryModal from '@/components/CreateEntryModal';
 import EntryDetailModal from '@/components/EntryDetailModal';
+import Logo from '@/components/Logo';
 import {
   getAllDiaryEntries,
   populateDatabaseWithSamples,
@@ -39,18 +40,38 @@ export default function Home() {
   const handleCreateEntry = async (audioBlob, transcript, imageIds) => {
     
     try {
+      console.log('Creating entry with:', {
+        transcript: transcript.substring(0, 50) + '...',
+        imageIds: imageIds,
+        imageCount: imageIds?.length || 0
+      });
+      
       // Prepare image data for LLM
       const imageData = imageIds?.length > 0
         ? await Promise.all(
-            imageIds.map(async (id) => ({
-              id,
-              base64: await getImageAsBase64(id)
-            }))
-          )
+            imageIds.map(async (id) => {
+              const base64 = await getImageAsBase64(id);
+              if (!base64) {
+                console.warn(`Failed to get base64 for image ${id}`);
+              }
+              return {
+                id,
+                base64
+              };
+            })
+          ).then(imgs => imgs.filter(img => img.base64)) // Filter out failed images
         : [];
+      
+      console.log(`Prepared ${imageData.length} images for LLM`);
 
       // Generate diary entry with LLM
       const llmResponse = await generateDiaryEntry(transcript, user, imageData);
+      
+      console.log('LLM Response:', {
+        paragraphs: llmResponse.paragraphs?.length,
+        imageMappings: Object.keys(llmResponse.imageParagraphMapping || {}).length,
+        imageDescriptions: Object.keys(llmResponse.imageDescriptions || {}).length
+      });
 
       // Save complete entry to database
       const entryData = {
@@ -63,6 +84,13 @@ export default function Home() {
         imageParagraphMapping: llmResponse.imageParagraphMapping,
         imageDescriptions: llmResponse.imageDescriptions,
       };
+
+      console.log('Saving entry data:', {
+        paragraphs: entryData.paragraphs.length,
+        imageIds: entryData.imageIds.length,
+        imageMappings: Object.keys(entryData.imageParagraphMapping).length,
+        imageDescriptions: Object.keys(entryData.imageDescriptions).length
+      });
 
       const newEntryId = await saveDiaryEntry(entryData);
       const newEntry = await getDiaryEntry(newEntryId);
@@ -81,6 +109,9 @@ export default function Home() {
   return (
     <div className="h-screen">
       <InitialPage onSubmit={setUser}/>
+
+      {/* Logo Header - only show after user has entered their name */}
+      {user && <Logo userName={user} />}
 
       {/* Loading State */}
       {isLoading ? (
