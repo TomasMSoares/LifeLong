@@ -21,6 +21,31 @@ export default function Home() {
   const [selectedEntry, setSelectedEntry] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [user, setUser] = useState("");
+  
+  // Load username from localStorage on mount
+  useEffect(() => {
+    const savedUsername = localStorage.getItem('lifelongUsername');
+    if (savedUsername) {
+      setUser(savedUsername);
+    }
+  }, []);
+  
+  // Save username to localStorage when it changes
+  const handleUserSubmit = (username) => {
+    localStorage.setItem('lifelongUsername', username);
+    setUser(username);
+  };
+  
+  // Function to refresh entries from database
+  const refreshEntries = async () => {
+    try {
+      const allEntries = await getAllDiaryEntries();
+      setEntries(allEntries);
+    } catch (error) {
+      console.error('Failed to load entries:', error);
+    }
+  };
+  
   // Load entries on mount
   useEffect(() => {
     async function fetchEntries() {
@@ -107,7 +132,7 @@ export default function Home() {
 
   return (
     <div className="h-full min-h-screen">
-      <InitialPage onSubmit={setUser}/>
+      <InitialPage onSubmit={handleUserSubmit} existingUser={user} />
 
       {/* Logo Header - only show after user has entered their name */}
       {user && <Logo userName={user} />}
@@ -143,6 +168,10 @@ export default function Home() {
       <EntryDetailModal
         entry={selectedEntry}
         onClose={() => setSelectedEntry(null)}
+        onEntryDeleted={() => {
+          setSelectedEntry(null);
+          refreshEntries();
+        }}
       />
     </div>
   );

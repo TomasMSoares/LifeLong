@@ -29,7 +29,7 @@ function getDynamicFontSize(text, isMobile = false) {
     return `${baseSize * 0.6}rem`; // Very long text: smallest
 }
 
-export default function DiaryModal({ paragraphs, images }) {
+export default function DiaryModal({ paragraphs, images, onDelete }) {
   const outerRef = useRef(null);
   const [isSaving, setIsSaving] = useState(false);
   const [isExportingPDF, setIsExportingPDF] = useState(false);
@@ -228,38 +228,52 @@ export default function DiaryModal({ paragraphs, images }) {
       })}
 
         {/* Export buttons */}
-        <div className="export-buttons w-full max-w-2xl mx-auto mt-6 px-4 flex justify-center gap-3">
-          <Button
-            variant="default"
-            onClick={handleSaveAsImage}
-            disabled={isSaving || isExportingPDF}
-            className="bg-[#E07A5F] hover:bg-[#E07A5F]/90 text-white px-6 py-3"
-          >
-            {isSaving ? (
-              <>
-                <span className="inline-block animate-spin mr-2">⏳</span>
-                Saving...
-              </>
-            ) : (
-              <>📷 Save as Image</>
-            )}
-          </Button>
+        <div className="export-buttons w-full max-w-2xl mx-auto mt-6 px-4 flex flex-col items-center gap-4">
+          <div className="flex justify-center gap-3">
+            <Button
+              variant="default"
+              onClick={handleSaveAsImage}
+              disabled={isSaving || isExportingPDF}
+              className="bg-[#E07A5F] hover:bg-[#E07A5F]/90 text-white px-6 py-3"
+            >
+              {isSaving ? (
+                <>
+                  <span className="inline-block animate-spin mr-2">⏳</span>
+                  Saving...
+                </>
+              ) : (
+                <>📷 Save as Image</>
+              )}
+            </Button>
+            
+            <Button
+              variant="default"
+              onClick={handleExportToPDF}
+              disabled={isSaving || isExportingPDF}
+              className="bg-[#81B29A] hover:bg-[#81B29A]/90 text-white px-6 py-3"
+            >
+              {isExportingPDF ? (
+                <>
+                  <span className="inline-block animate-spin mr-2">⏳</span>
+                  Exporting...
+                </>
+              ) : (
+                <>📄 Export to PDF</>
+              )}
+            </Button>
+          </div>
           
-          <Button
-            variant="default"
-            onClick={handleExportToPDF}
-            disabled={isSaving || isExportingPDF}
-            className="bg-[#81B29A] hover:bg-[#81B29A]/90 text-white px-6 py-3"
-          >
-            {isExportingPDF ? (
-              <>
-                <span className="inline-block animate-spin mr-2">⏳</span>
-                Exporting...
-              </>
-            ) : (
-              <>📄 Export to PDF</>
-            )}
-          </Button>
+          {/* Delete button */}
+          {onDelete && (
+            <Button
+              variant="outline"
+              onClick={onDelete}
+              disabled={isSaving || isExportingPDF}
+              className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-300 text-sm px-4 py-2"
+            >
+              🗑️ Delete Entry
+            </Button>
+          )}
         </div>
     </div>
   );

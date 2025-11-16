@@ -11,7 +11,7 @@ import DiaryTopBar from './DiaryTopBar';
 import AudioPlayback from './AudioPlayback';
 import { getImageUrl } from '@/lib/imageDB';
 
-export default function EntryDetailModal({ entry, onClose }) {
+export default function EntryDetailModal({ entry, onClose, onEntryDeleted }) {
   const [imageUrls, setImageUrls] = useState({});
   const [isLoadingImages, setIsLoadingImages] = useState(true);
 
@@ -104,10 +104,39 @@ export default function EntryDetailModal({ entry, onClose }) {
               <div className="w-12 h-12 border-4 border-terracotta/20 border-t-terracotta rounded-full animate-spin" />
             </div>
           ) : (
-            <DiaryModal paragraphs={paragraphs} images={images} />
+            <DiaryModal paragraphs={paragraphs} images={images} onDelete={() => handleDelete(entry.id, onEntryDeleted)} />
           )}
         </div>
       </DialogContent>
     </Dialog>
   );
+}
+
+async function handleDelete(entryId, onEntryDeleted) {
+  const confirmed = window.confirm('Are you sure you want to delete this diary entry? This action cannot be undone.');
+  
+  if (!confirmed) return;
+  
+  try {
+    // Import the delete function
+    const { deleteDiaryEntry } = await import('@/lib/storage');
+    const { deleteImage, getImagesByEntryId } = await import('@/lib/imageDB');
+    
+    // Get all images associated with this entry
+    const images = await getImagesByEntryId(entryId);
+    
+    // Delete all associated images
+    await Promise.all(images.map(img => deleteImage(img.id)));
+    
+    // Delete the diary entry
+    await deleteDiaryEntry(entryId);
+    
+    // Call the callback to refresh entries and close modal
+    if (onEntryDeleted) {
+      onEntryDeleted();
+    }
+  } catch (error) {
+    console.error('Error deleting entry:', error);
+    alert('Failed to delete entry. Please try again.');
+  }
 }
