@@ -78,7 +78,6 @@ export async function POST(request) {
     });
 
     const rawText = response.text || '{}';
-    console.log('Gemini raw response:', rawText);
     
     let paragraphs, imageParagraphMapping, imageDescriptions;
     try {
