@@ -3,6 +3,8 @@ import { Button } from '@/components/ui/button';
 
 
 export default function InitialPage() {
+  console.log('[InitialPage] Component rendering');
+  
   const [isFading, setIsFading] = useState(false);     // starts false
   const [hide, setHide] = useState(false);             // controls scrolling
   const [opacity, setOpacity] = useState(98);          // starts at 90
@@ -29,6 +31,7 @@ export default function InitialPage() {
     const interval = setInterval(() => {
       setOpacity(prev => {
         if (prev <= 0) {
+          console.log('[InitialPage] Fade complete, hiding component');
           clearInterval(interval);
           setVisible(false);  // remove from DOM
           return 0;
@@ -40,7 +43,12 @@ export default function InitialPage() {
     return () => clearInterval(interval);
   }, [isFading]);
 
-  if (!visible) return null;
+  console.log('[InitialPage] Render state - visible:', visible, 'opacity:', opacity, 'isFading:', isFading);
+  
+  if (!visible) {
+    console.log('[InitialPage] Not visible, returning null');
+    return null;
+  }
 
   return (
     <div>
