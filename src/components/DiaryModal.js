@@ -1,4 +1,7 @@
-import React from 'react'
+import React, { useRef, useState } from 'react'
+import { Button } from '@/components/ui/button'
+import html2canvas from 'html2canvas-pro'
+import jsPDF from 'jspdf'
 
 const post_its= ["post-it.png", "post-it2.png", "post-it3.png"]
 
@@ -27,9 +30,126 @@ function getDynamicFontSize(text, isMobile = false) {
 }
 
 export default function DiaryModal({ paragraphs, images }) {
+  const outerRef = useRef(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isExportingPDF, setIsExportingPDF] = useState(false);
+
+  const handleSaveAsImage = async () => {
+    if (!outerRef.current) return;
+    
+    setIsSaving(true);
+    
+    try {
+      const element = outerRef.current;
+      
+      // Wait for any animations to complete
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      // Capture the element as a canvas, excluding export buttons
+      const canvas = await html2canvas(element, {
+        scale: 2, // Higher quality (2x resolution)
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#FFF8E7',
+        allowTaint: true,
+        imageTimeout: 0,
+        ignoreElements: (el) => el.classList?.contains('export-buttons'),
+      });
+      
+      // Convert canvas to blob
+      canvas.toBlob((blob) => {
+        if (!blob) {
+          throw new Error('Failed to create image');
+        }
+        
+        // Create download link
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        const date = new Date().toISOString().split('T')[0];
+        link.download = `diary-entry-${date}.png`;
+        link.href = url;
+        link.click();
+        
+        // Cleanup
+        URL.revokeObjectURL(url);
+        setIsSaving(false);
+      }, 'image/png', 1.0);
+      
+    } catch (error) {
+      console.error('Error saving image:', error);
+      alert('Failed to save image. Please try again.');
+      setIsSaving(false);
+    }
+  };
+
+  const handleExportToPDF = async () => {
+    if (!outerRef.current) return;
+    
+    setIsExportingPDF(true);
+    
+    try {
+      const element = outerRef.current;
+      
+      // Wait for any animations to complete
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      // Capture the element as a canvas with high quality, excluding export buttons
+      const canvas = await html2canvas(element, {
+        scale: 2, // Higher quality
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#FFF8E7',
+        allowTaint: true,
+        imageTimeout: 0,
+        ignoreElements: (el) => el.classList?.contains('export-buttons'),
+      });
+      
+      // Calculate PDF dimensions
+      const imgWidth = 210; // A4 width in mm
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      
+      // Create PDF
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+      });
+      
+      // Add the canvas as an image to the PDF
+      const imgData = canvas.toDataURL('image/png');
+      
+      // Handle multiple pages if content is too long
+      let heightLeft = imgHeight;
+      let position = 0;
+      const pageHeight = 297; // A4 height in mm
+      
+      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+      
+      while (heightLeft > 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+      
+      // Generate filename with date
+      const date = new Date().toISOString().split('T')[0];
+      const filename = `diary-entry-${date}.pdf`;
+      
+      // Save the PDF
+      pdf.save(filename);
+      
+    } catch (error) {
+      console.error('Error exporting to PDF:', error);
+      alert('Failed to export PDF. Please try again.');
+    } finally {
+      setIsExportingPDF(false);
+    }
+  };
 
   return (
-    <div className="flex flex-col items-center gap-8 px-4 py-6">
+    <div ref={outerRef} className="flex flex-col items-center gap-8 px-4 py-6">
       {paragraphs.map((text, index) => {
         const imgs = images ? Object.keys(images).filter((imageId) => {
           const meta = images[imageId];
@@ -106,6 +226,41 @@ export default function DiaryModal({ paragraphs, images }) {
           </div>
         );
       })}
+
+        {/* Export buttons */}
+        <div className="export-buttons w-full max-w-2xl mx-auto mt-6 px-4 flex justify-center gap-3">
+          <Button
+            variant="default"
+            onClick={handleSaveAsImage}
+            disabled={isSaving || isExportingPDF}
+            className="bg-[#E07A5F] hover:bg-[#E07A5F]/90 text-white px-6 py-3"
+          >
+            {isSaving ? (
+              <>
+                <span className="inline-block animate-spin mr-2">⏳</span>
+                Saving...
+              </>
+            ) : (
+              <>📷 Save as Image</>
+            )}
+          </Button>
+          
+          <Button
+            variant="default"
+            onClick={handleExportToPDF}
+            disabled={isSaving || isExportingPDF}
+            className="bg-[#81B29A] hover:bg-[#81B29A]/90 text-white px-6 py-3"
+          >
+            {isExportingPDF ? (
+              <>
+                <span className="inline-block animate-spin mr-2">⏳</span>
+                Exporting...
+              </>
+            ) : (
+              <>📄 Export to PDF</>
+            )}
+          </Button>
+        </div>
     </div>
   );
 }

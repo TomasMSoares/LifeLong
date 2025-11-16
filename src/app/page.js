@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import RoadCanvas from '@/components/RoadCanvas';
 import CreateEntryModal from '@/components/CreateEntryModal';
 import EntryDetailModal from '@/components/EntryDetailModal';
+import Logo from '@/components/Logo';
 import {
   getAllDiaryEntries,
   populateDatabaseWithSamples,
@@ -24,7 +25,6 @@ export default function Home() {
   useEffect(() => {
     async function fetchEntries() {
       try {
-        await populateDatabaseWithSamples();
         const allEntries = await getAllDiaryEntries();
         setEntries(allEntries);
       } catch (error) {
@@ -106,8 +106,11 @@ export default function Home() {
   };
 
   return (
-    <div className="h-screen">
+    <div className="h-full min-h-screen">
       <InitialPage onSubmit={setUser}/>
+
+      {/* Logo Header - only show after user has entered their name */}
+      {user && <Logo userName={user} />}
 
       {/* Loading State */}
       {isLoading ? (
