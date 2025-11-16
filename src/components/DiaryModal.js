@@ -10,6 +10,22 @@ function randomPostIti() {
     return (Math.floor(Math.random() * (3 )) + 1)  - 1;
 }
 
+/**
+ * Calculate dynamic font size based on text length to prevent overflow
+ * Shorter text gets larger font, longer text gets smaller font
+ */
+function getDynamicFontSize(text, isMobile = false) {
+    const length = text?.length || 0;
+    
+    // Base sizes for mobile and desktop
+    const baseSize = isMobile ? 0.75 : 1; // rem units
+    
+    if (length <= 30) return `${baseSize * 1}rem`; // Short text: full size
+    if (length <= 50) return `${baseSize * 0.95}rem`; // Medium text: slightly smaller
+    if (length <= 70) return `${baseSize * 0.9}rem`; // Long text: smaller
+    return `${baseSize * 0.6}rem`; // Very long text: smallest
+}
+
 export default function DiaryModal({ paragraphs, images }) {
 
   return (
@@ -74,8 +90,11 @@ export default function DiaryModal({ paragraphs, images }) {
                       style={{ top: '8%' }}
                     >
                       <span
-                        className="text-xs sm:text-base font-medium text-center text-[#2c2c2c] leading-snug"
-                        style={{ fontFamily: 'var(--font-quicksand)' }}
+                        className="font-medium text-center text-[#2c2c2c] leading-snug break-words"
+                        style={{ 
+                          fontFamily: 'var(--font-quicksand)',
+                          fontSize: getDynamicFontSize(description, true)
+                        }}
                       >
                         {description}
                       </span>

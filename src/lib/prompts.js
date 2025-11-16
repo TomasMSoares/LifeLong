@@ -50,9 +50,10 @@ SECOND TASK:
 // User prompt part 3: Image descriptions
 export const IMAGE_DESCRIPTION_PROMPT = `
 FINAL TASK:
-- For each image, provide a super-short one-sentence description (max 10 words)
-- Descriptions should capture the essence of what's shown in the image
-- Use warm, simple language
+- For each image, provide a super-short description (max 7-8 words, not a full sentence)
+- Descriptions should capture the essence of what's shown in the image, in the context of the diary entry
+- Take into account the generated paragraphs and the image to paragraph association as a baseline for the description
+- Use simple language
 - Return image descriptions using the image IDs as keys`;
 
 // Helper to format cleanup-only prompt (no images)
