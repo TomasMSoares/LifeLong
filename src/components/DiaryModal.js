@@ -1,4 +1,5 @@
-import React from 'react'
+import React, { useRef } from 'react'
+import { Button } from '@/components/ui/button'
 
 const post_its= ["post-it.png", "post-it2.png", "post-it3.png"]
 
@@ -27,9 +28,10 @@ function getDynamicFontSize(text, isMobile = false) {
 }
 
 export default function DiaryModal({ paragraphs, images }) {
+  const outerRef = useRef(null);
 
   return (
-    <div className="flex flex-col items-center gap-8 px-4 py-6">
+    <div ref={outerRef} className="flex flex-col items-center gap-8 px-4 py-6">
       {paragraphs.map((text, index) => {
         const imgs = images ? Object.keys(images).filter((imageId) => {
           const meta = images[imageId];
@@ -106,6 +108,42 @@ export default function DiaryModal({ paragraphs, images }) {
           </div>
         );
       })}
+
+        {/* Export button */}
+        <div className="w-full max-w-2xl mx-auto mt-6 px-4 flex justify-center">
+          <Button
+            variant="default"
+            onClick={() => {
+              const node = outerRef.current;
+              if (!node) return;
+
+              const printWindow = window.open('', '_blank', 'noopener,noreferrer');
+              if (!printWindow) return;
+
+              const styles = Array.from(document.querySelectorAll('link[rel="stylesheet"], style')).map(
+                (el) => el.outerHTML
+              ).join('\n');
+
+              const extraStyle = `
+                <style>
+                  html,body{height:100%;margin:0}
+                  img{max-width:100%;height:auto}
+                  .export-root{width:100%;box-sizing:border-box;padding:16px}
+                </style>
+              `;
+
+              printWindow.document.open();
+              printWindow.document.write(`<!doctype html><html><head><meta charset="utf-8">${styles}${extraStyle}</head><body><div class="export-root">${node.innerHTML}</div></body></html>`);
+              printWindow.document.close();
+              printWindow.focus();
+              setTimeout(() => {
+                printWindow.print();
+              }, 600);
+            }}
+          >
+            Export to PDF
+          </Button>
+        </div>
     </div>
   );
 }
