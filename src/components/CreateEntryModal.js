@@ -17,103 +17,95 @@ const STEPS = {
   VOICE: 'voice',
   IMAGES: 'images',
   LOADING: 'loading',
-  PREVIEW: 'preview'
+  SUCCESS: 'success'
+};
+
+const STEP_TITLES = {
+  [STEPS.VOICE]: 'Tell us about your day',
+  [STEPS.IMAGES]: 'Add some photos',
+  [STEPS.LOADING]: 'Creating your memory...',
+  [STEPS.SUCCESS]: 'Memory Created!'
 };
 
 export default function CreateEntryModal({ open, onClose, onSubmit }) {
   const [step, setStep] = useState(STEPS.VOICE);
-
-  // EntryData State
   const [transcript, setTranscript] = useState('');
   const [audioBlob, setAudioBlob] = useState(null);
   const [imageIds, setImageIds] = useState([]);
-
   const [isRecording, setIsRecording] = useState(false);
   const [isTranscribing, setIsTranscribing] = useState(false);
-  const [generatedEntry, setGeneratedEntry] = useState(null);
 
   // Reset state when modal closes
   useEffect(() => {
     if (!open) {
-      setTimeout(() => {
+      const resetTimer = setTimeout(() => {
         setStep(STEPS.VOICE);
         setTranscript('');
         setAudioBlob(null);
         setImageIds([]);
         setIsRecording(false);
         setIsTranscribing(false);
-        setGeneratedEntry(null);
-      }, 300); // Wait for modal close animation
+      }, 300);
+      
+      return () => clearTimeout(resetTimer);
     }
   }, [open]);
 
-  // Step 1: Voice Recording
   const handleToggleRecording = async () => {
     if (!isRecording) {
       await startRecording();
       setIsRecording(true);
-    } else {
-      setIsRecording(false);
-      setIsTranscribing(true);
-      const audioBlob = await stopRecording();
+      return;
+    }
 
-      try {
-        if (audioBlob) {
-          const { transcript } = await transcribeWithElevenLabs(audioBlob, { languageCode: 'en' });
-          setTranscript(transcript);
-          setAudioBlob(audioBlob);
-        }
-      } catch (err) {
-        console.error('Transcription error:', err);
-        alert('Sorry, something went wrong while processing your recording.');
-      } finally {
-        setIsTranscribing(false);
+    setIsRecording(false);
+    setIsTranscribing(true);
+    
+    try {
+      const blob = await stopRecording();
+      if (!blob) {
+        throw new Error('No audio recorded');
       }
+
+      const { transcript: transcribedText } = await transcribeWithElevenLabs(blob, { 
+        languageCode: 'en' 
+      });
+      
+      setTranscript(transcribedText);
+      setAudioBlob(blob);
+    } catch (error) {
+      console.error('Recording error:', error);
+      alert('Sorry, something went wrong while processing your recording.');
+    } finally {
+      setIsTranscribing(false);
     }
   };
 
-  const handleVoiceNext = () => {
-    if (transcript) {
-      setStep(STEPS.IMAGES);
-    }
-  };
+  const handleSubmitEntry = async () => {
+    if (!audioBlob || !transcript) return;
 
-  // Step 2: Image Upload
-  const handleImagesNext = () => {
     setStep(STEPS.LOADING);
-    generateEntry();
-  };
-
-  const handleSkipImages = () => {
-    setStep(STEPS.LOADING);
-    generateEntry();
-  };
-
-  // Step 3: Generate Entry
-  const generateEntry = async () => {
+    
     try {
       await onSubmit(audioBlob, transcript, imageIds);
-      setStep(STEPS.PREVIEW);
-      // Close modal and parent will open the detail view
-      setTimeout(() => {
-        onClose();
-      }, 1500); // Short delay to show success message
-    } catch (err) {
-      console.error('Generate entry error:', err);
+      setStep(STEPS.SUCCESS);
+      setTimeout(onClose, 1500);
+    } catch (error) {
+      console.error('Entry creation error:', error);
       alert('Failed to create memory. Please try again.');
       setStep(STEPS.IMAGES);
     }
   };
+
+  const canProceedFromVoice = transcript && audioBlob;
+  const isProcessing = isRecording || isTranscribing;
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="bg-warmBeige border-terracotta max-w-2xl">
         <DialogHeader>
           <DialogTitle className="text-2xl text-softBrown">
-            {step === STEPS.VOICE && 'Tell us about your day'}
-            {step === STEPS.IMAGES && 'Add some photos'}
-            {step === STEPS.LOADING && 'Creating your memory...'}
-            {step === STEPS.PREVIEW && 'Memory Created!'}
+            {STEP_TITLES[step]}
           </DialogTitle>
         </DialogHeader>
 
@@ -189,23 +181,24 @@ export default function CreateEntryModal({ open, onClose, onSubmit }) {
               )}
 
               {/* Next Button */}
-              <div className="flex gap-3">
-                {transcript && (
-                  <Button
-                    onClick={handleVoiceNext}
-                    className="flex-1 bg-terracotta hover:bg-terracotta/90 text-lg py-6"
-                  >
-                    Next: Add Photos →
-                  </Button>
-                )}
-              </div>
+              {canProceedFromVoice && (
+                <Button
+                  onClick={() => setStep(STEPS.IMAGES)}
+                  className="w-full bg-terracotta hover:bg-terracotta/90 text-lg py-6"
+                >
+                  Next: Add Photos →
+                </Button>
+              )}
             </div>
           )}
 
           {/* STEP 2: IMAGE UPLOAD */}
           {step === STEPS.IMAGES && (
             <div className="space-y-6 animate-slide-in-right">
-              <ImageUpload onImagesChange={setImageIds} />
+              <ImageUpload 
+                onImagesChange={setImageIds}
+                initialImageIds={imageIds}
+              />
 
               <div className="flex gap-3">
                 <Button
@@ -216,17 +209,11 @@ export default function CreateEntryModal({ open, onClose, onSubmit }) {
                   ← Back
                 </Button>
                 <Button
-                  onClick={handleSkipImages}
+                  onClick={handleSubmitEntry}
                   variant="outline"
                   className="flex-1 border-terracotta text-terracotta"
                 >
-                  Skip Photos
-                </Button>
-                <Button
-                  onClick={handleImagesNext}
-                  className="flex-1 bg-terracotta hover:bg-terracotta/90"
-                >
-                  Create Memory →
+                  {imageIds.length === 0 ? 'Skip Photos' : 'Create Memory →'}
                 </Button>
               </div>
             </div>
@@ -246,8 +233,8 @@ export default function CreateEntryModal({ open, onClose, onSubmit }) {
             </div>
           )}
 
-          {/* STEP 4: SUCCESS PREVIEW */}
-          {step === STEPS.PREVIEW && (
+          {/* STEP 4: SUCCESS */}
+          {step === STEPS.SUCCESS && (
             <div className="flex flex-col items-center justify-center py-16 animate-fade-in">
               <div className="w-32 h-32 rounded-full bg-gradient-radial from-terracotta to-goldenrod flex items-center justify-center text-6xl mb-6 animate-glow">
                 ✓
@@ -260,9 +247,15 @@ export default function CreateEntryModal({ open, onClose, onSubmit }) {
 
         {/* Step Indicator */}
         <div className="flex justify-center gap-2 pb-4">
-          <div className={`w-2 h-2 rounded-full transition-all ${step === STEPS.VOICE ? 'bg-terracotta w-8' : 'bg-terracotta/30'}`} />
-          <div className={`w-2 h-2 rounded-full transition-all ${step === STEPS.IMAGES ? 'bg-terracotta w-8' : 'bg-terracotta/30'}`} />
-          <div className={`w-2 h-2 rounded-full transition-all ${step === STEPS.LOADING || step === STEPS.PREVIEW ? 'bg-terracotta w-8' : 'bg-terracotta/30'}`} />
+          <div className={`w-2 h-2 rounded-full transition-all ${
+            step === STEPS.VOICE ? 'bg-terracotta w-8' : 'bg-terracotta/30'
+          }`} />
+          <div className={`w-2 h-2 rounded-full transition-all ${
+            step === STEPS.IMAGES ? 'bg-terracotta w-8' : 'bg-terracotta/30'
+          }`} />
+          <div className={`w-2 h-2 rounded-full transition-all ${
+            step === STEPS.LOADING || step === STEPS.SUCCESS ? 'bg-terracotta w-8' : 'bg-terracotta/30'
+          }`} />
         </div>
       </DialogContent>
     </Dialog>

@@ -4,43 +4,43 @@ import { useState, useEffect } from 'react';
 import RoadCanvas from '@/components/RoadCanvas';
 import CreateEntryModal from '@/components/CreateEntryModal';
 import EntryDetailModal from '@/components/EntryDetailModal';
-import { getAllDiaryEntries, populateDatabaseWithSamples, saveDiaryEntry } from '@/lib/storage';
+import {
+  getAllDiaryEntries,
+  populateDatabaseWithSamples,
+  saveDiaryEntry,
+  getDiaryEntry
+} from '@/lib/storage';
 import InitialPage from '@/components/InitialPage';
 import { generateDiaryEntry } from '@/lib/gemini';
 import { getImageAsBase64 } from '@/lib/imageDB';
 
 export default function Home() {
-  console.log('[Home] Component rendering');
-  
   const [entries, setEntries] = useState([]);
   const [showCreate, setShowCreate] = useState(false);
   const [selectedEntry, setSelectedEntry] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Load entries on mount
   useEffect(() => {
-    console.log('[Home] useEffect running - fetching entries');
     async function fetchEntries() {
       try {
-        console.log('[Home] Populating database with samples...');
-        await populateDatabaseWithSamples(); // For testing/demo purposes
-        console.log('[Home] Getting all diary entries...');
+        await populateDatabaseWithSamples();
         const allEntries = await getAllDiaryEntries();
-        console.log('[Home] Fetched entries:', allEntries);
         setEntries(allEntries);
       } catch (error) {
-        console.error('[Home] Error fetching entries:', error);
+        console.error('Failed to load entries:', error);
+      } finally {
+        setIsLoading(false);
       }
     }
     fetchEntries();
   }, []);
 
   const handleCreateEntry = async (audioBlob, transcript, imageIds) => {
-    console.log('[Home] handleCreateEntry called with:', { audioBlob, transcript, imageIds });
     
     try {
-      // Fetch all image data as base64 with proper async handling
-      console.log('[Home] Fetching image data...');
-      const imageData = imageIds && imageIds.length > 0
+      // Prepare image data for LLM
+      const imageData = imageIds?.length > 0
         ? await Promise.all(
             imageIds.map(async (id) => ({
               id,
@@ -48,71 +48,60 @@ export default function Home() {
             }))
           )
         : [];
-      console.log('[Home] Image data fetched:', imageData);
 
+      // Generate diary entry with LLM
+      const llmResponse = await generateDiaryEntry(transcript, "USER_PLACEHOLDER", imageData);
+
+      // Save complete entry to database
       const entryData = {
         date: new Date().toISOString(),
         userName: "USER_PLACEHOLDER",
         transcript,
-        imageIds: imageIds || [], // ✅ Add imageIds array
-        imageData, // For LLM API
+        imageIds: imageIds || [],
         audioBlob,
+        paragraphs: llmResponse.paragraphs,
+        imageParagraphMapping: llmResponse.imageParagraphMapping,
+        imageDescriptions: llmResponse.imageDescriptions,
       };
-      console.log('[Home] Entry data prepared:', entryData);
 
-      console.log('[Home] Generating diary entry with LLM...');
-      const llmResponse = await generateDiaryEntry(transcript, entryData.userName, entryData.imageData);
-      console.log('[Home] LLM response received:', llmResponse);
-
-      entryData.paragraphs = llmResponse.paragraphs;
-      entryData.imageParagraphMapping = llmResponse.imageParagraphMapping;
-      entryData.imageDescriptions = llmResponse.imageDescriptions;
-
-      console.log('[Home] Saving diary entry...');
-      const newEntryId = await saveDiaryEntry(entryData); // ✅ Returns ID string
-      console.log('[Home] New entry ID:', newEntryId);
-
-      // ✅ Fetch the full entry object from database
-      const { getDiaryEntry } = await import('@/lib/storage');
+      const newEntryId = await saveDiaryEntry(entryData);
       const newEntry = await getDiaryEntry(newEntryId);
-      console.log('[Home] New entry fetched:', newEntry);
 
       setEntries([...entries, newEntry]);
-      console.log('[Home] Entries state updated');
-
       setShowCreate(false);
-      // Open the newly created entry in detail modal
-      setTimeout(() => {
-        console.log('[Home] Opening new entry in detail modal');
-        setSelectedEntry(newEntry);
-      }, 300); // Small delay for smooth transition
+      
+      // Open the newly created entry
+      setTimeout(() => setSelectedEntry(newEntry), 300);
     } catch (error) {
-      console.error('[Home] Error in handleCreateEntry:', error);
+      console.error('Failed to create entry:', error);
+      throw error; // Let CreateEntryModal handle the error
     }
   };
 
-  console.log('[Home] Rendering with entries:', entries);
-  
   return (
     <div className="h-screen">
-      <InitialPage/>
+      <InitialPage />
 
-      {/* Main Canvas */}
-      <RoadCanvas
-        entries={entries}
-        onEntryClick={(entry) => {
-          console.log('[Home] Entry clicked:', entry);
-          if (entry === null) {
-            console.log('[Home] Add memory clicked, opening create modal');
-            setTimeout(() => {
-              setShowCreate(true);
-            }, 300);
-          } else {
-            console.log('[Home] Existing entry clicked, opening detail modal');
-            setSelectedEntry(entry);
-          }
-        }}
-      />
+      {/* Loading State */}
+      {isLoading ? (
+        <div className="flex items-center justify-center h-full">
+          <div className="text-center">
+            <div className="w-12 h-12 border-4 border-terracotta border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+            <p className="text-softBrown text-lg">Loading your memories...</p>
+          </div>
+        </div>
+      ) : (
+        <RoadCanvas
+          entries={entries}
+          onEntryClick={(entry) => {
+            if (entry === null) {
+              setTimeout(() => setShowCreate(true), 300);
+            } else {
+              setSelectedEntry(entry);
+            }
+          }}
+        />
+      )}
 
       {/* Modals */}
       <CreateEntryModal

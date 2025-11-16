@@ -12,26 +12,17 @@ const ENTRIES_STORE = 'entries';
  * @returns {Promise<IDBDatabase>}
  */
 function openDB() {
-  console.log('[storage] Opening IndexedDB...');
   return new Promise((resolve, reject) => {
     const request = indexedDB.open(DB_NAME, DB_VERSION);
 
-    request.onerror = () => {
-      console.error('[storage] IndexedDB open error:', request.error);
-      reject(request.error);
-    };
-    request.onsuccess = () => {
-      console.log('[storage] IndexedDB opened successfully');
-      resolve(request.result);
-    };
+    request.onerror = () => reject(request.error);
+    request.onsuccess = () => resolve(request.result);
 
     request.onupgradeneeded = (event) => {
-      console.log('[storage] IndexedDB upgrade needed, creating stores...');
       const db = event.target.result;
       
       // Create entries store if it doesn't exist
       if (!db.objectStoreNames.contains(ENTRIES_STORE)) {
-        console.log('[storage] Creating entries store');
         const entriesStore = db.createObjectStore(ENTRIES_STORE, { keyPath: 'id' });
         entriesStore.createIndex('date', 'date', { unique: false });
         entriesStore.createIndex('timestamp', 'timestamp', { unique: false });
@@ -39,7 +30,6 @@ function openDB() {
       
       // Create images store if it doesn't exist (shared with imageDB.js)
       if (!db.objectStoreNames.contains('images')) {
-        console.log('[storage] Creating images store for imageDB compatibility');
         const imagesStore = db.createObjectStore('images', { keyPath: 'id' });
         imagesStore.createIndex('entryId', 'entryId', { unique: false });
         imagesStore.createIndex('timestamp', 'timestamp', { unique: false });
@@ -80,8 +70,6 @@ export async function saveDiaryEntry(entryData) {
     imageIds: entryData.imageIds || [],
     userName: entryData.userName || 'they',
   };
-
-  console.log('Saving diary entry:', entry);
 
   return new Promise((resolve, reject) => {
     const transaction = db.transaction([ENTRIES_STORE], 'readwrite');
@@ -155,8 +143,6 @@ export async function getDiaryEntryPreviews() {
  * @returns {Promise<Array>} - Returns array of all entries
  */
 export async function getAllDiaryEntries() {
-  console.log('[storage] getAllDiaryEntries called');
-  
   try {
     const db = await openDB();
 
@@ -167,30 +153,21 @@ export async function getAllDiaryEntries() {
 
       request.onsuccess = () => {
         const entries = request.result || [];
-        console.log('[storage] getAllDiaryEntries - raw entries:', entries);
         // Sort by timestamp descending (newest first)
         entries.sort((a, b) => b.timestamp - a.timestamp);
-        console.log('[storage] getAllDiaryEntries - sorted entries:', entries);
         resolve(entries);
       };
+      
       request.onerror = () => {
-        console.error('[storage] getAllDiaryEntries error:', request.error);
-        // Resolve with empty array instead of rejecting to prevent app crashes
-        resolve([]);
+        console.error('Error fetching diary entries:', request.error);
+        resolve([]); // Graceful fallback
       };
 
       transaction.oncomplete = () => db.close();
-      transaction.onerror = () => {
-        console.error('[storage] getAllDiaryEntries transaction error');
-        db.close();
-        // Resolve with empty array instead of rejecting
-        resolve([]);
-      };
     });
   } catch (error) {
-    console.error('[storage] getAllDiaryEntries catch error:', error);
-    // Return empty array on any error to prevent crashes
-    return [];
+    console.error('Failed to get diary entries:', error);
+    return []; // Graceful fallback
   }
 }
 
@@ -321,21 +298,17 @@ export function generateSampleEntries() {
  * @returns {Promise<void>}
  */
 export async function populateDatabaseWithSamples() {
-  console.log('[storage] populateDatabaseWithSamples called');
   const db = await openDB();
 
   return new Promise((resolve, reject) => {
-    // First check if database already has entries
     const checkTransaction = db.transaction([ENTRIES_STORE], 'readonly');
     const checkStore = checkTransaction.objectStore(ENTRIES_STORE);
     const countRequest = checkStore.count();
 
     countRequest.onsuccess = () => {
       const count = countRequest.result;
-      console.log('[storage] Current entry count:', count);
       
       if (count > 0) {
-        console.log('[storage] Database already has entries, skipping sample population');
         db.close();
         resolve();
         return;
@@ -343,31 +316,25 @@ export async function populateDatabaseWithSamples() {
 
       // Database is empty, add samples
       const samples = generateSampleEntries();
-      console.log('[storage] Generated sample entries:', samples);
-
       const transaction = db.transaction([ENTRIES_STORE], 'readwrite');
       const store = transaction.objectStore(ENTRIES_STORE);
       
-      // Add each sample entry
-      samples.forEach(sample => {
-        console.log('[storage] Adding sample entry:', sample);
-        store.add(sample);
-      });
+      samples.forEach(sample => store.add(sample));
 
       transaction.oncomplete = () => {
-        console.log('[storage] Sample entries added successfully');
         db.close();
         resolve();
       };
+      
       transaction.onerror = () => {
-        console.error('[storage] populateDatabaseWithSamples error:', transaction.error);
+        console.error('Failed to populate sample entries:', transaction.error);
         db.close();
         reject(transaction.error);
       };
     };
 
     countRequest.onerror = () => {
-      console.error('[storage] Error checking entry count:', countRequest.error);
+      console.error('Failed to check entry count:', countRequest.error);
       db.close();
       reject(countRequest.error);
     };
