@@ -7,7 +7,7 @@ export default function InitialPage() {
   
   const [isFading, setIsFading] = useState(false);     // starts false
   const [hide, setHide] = useState(false);             // controls scrolling
-  const [opacity, setOpacity] = useState(98);          // starts at 90
+  const [opacity, setOpacity] = useState(90);          // starts at 90
   const [visible, setVisible] = useState(true);        // rendered initially
 
   useEffect(() => {
@@ -56,9 +56,9 @@ export default function InitialPage() {
         className={`
           fixed inset-0 z-30
           flex flex-col items-center justify-center
-          transition-opacity duration-300 bg-white min-h-[100dvh]
+          transition-opacity duration-300 bg-cream min-h-[100dvh]
         `}
-        style={{ backgroundColor: `rgba(255,255,255,${opacity/100})` }}
+        style={{ backgroundColor: `rgba(255,247,230,${opacity/100})` }}
       >
         <div className=' rounded-lg flex flex-col items-center justify-center p-2 mx-4'
           style={{backgroundColor: '#ffffff', opacity: `${opacity/100}`,  boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.08)"}}
