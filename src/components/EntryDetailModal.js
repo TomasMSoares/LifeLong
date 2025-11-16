@@ -8,84 +8,88 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Card } from '@/components/ui/card';
+import DiaryModal from './DiaryModal';
 import { getImageUrl } from '@/lib/imageDB';
 
 export default function EntryDetailModal({ entry, onClose }) {
-  const [imageUrls, setImageUrls] = useState([]);
+  const [imageUrls, setImageUrls] = useState({});
+  const [isLoadingImages, setIsLoadingImages] = useState(true);
 
-  // Load image URLs when entry changes
+  // Load image URLs from IndexedDB when entry changes
   useEffect(() => {
-    if (!entry?.imageIds?.length) {
-      setImageUrls([]);
+    if (!entry || !entry.imageIds || entry.imageIds.length === 0) {
+      setImageUrls({});
+      setIsLoadingImages(false);
       return;
     }
 
-    async function loadImages() {
-      const urls = await Promise.all(
-        entry.imageIds.map(id => getImageUrl(id))
-      );
-      setImageUrls(urls.filter(url => url !== null));
-    }
+    let isMounted = true;
+    const loadImages = async () => {
+      setIsLoadingImages(true);
+      const urls = {};
+      
+      for (const imageId of entry.imageIds) {
+        try {
+          const url = await getImageUrl(imageId);
+          if (url && isMounted) {
+            urls[imageId] = url;
+          }
+        } catch (error) {
+          console.error(`Failed to load image ${imageId}:`, error);
+        }
+      }
+      
+      if (isMounted) {
+        setImageUrls(urls);
+        setIsLoadingImages(false);
+      }
+    };
 
     loadImages();
 
-    // Cleanup URLs on unmount
+    // Cleanup: revoke blob URLs when component unmounts or entry changes
     return () => {
-      imageUrls.forEach(url => URL.revokeObjectURL(url));
+      isMounted = false;
+      Object.values(imageUrls).forEach(url => {
+        if (url) URL.revokeObjectURL(url);
+      });
     };
   }, [entry]);
+
 
   if (!entry) return null;
 
   // Extract paragraphs from llmResponse
   const paragraphs = entry.llmResponse?.paragraphs || [];
   const imageParagraphMapping = entry.llmResponse?.imageParagraphMapping || {};
+  const imageDescriptions = entry.llmResponse?.imageDescriptions || {};
+
+  // Convert to format expected by DiaryModal: { imageId: [paragraphIndex, description, blobUrl] }
+  const images = {};
+  for (const imageId of entry.imageIds || []) {
+    const paragraphIndex = imageParagraphMapping[imageId];
+    const description = imageDescriptions[imageId] || '';
+    const blobUrl = imageUrls[imageId] || null;
+    
+    if (blobUrl) {
+      images[imageId] = [paragraphIndex, description, blobUrl];
+    }
+  }
 
   return (
     <Dialog open={!!entry} onOpenChange={onClose}>
-      <DialogContent className="bg-warmBeige border-terracotta max-w-3xl">
-        <DialogHeader>
-          <DialogTitle className="text-2xl text-softBrown">
-            {new Date(entry.date).toLocaleDateString('en-US', {
-              weekday: 'long',
-              year: 'numeric',
-              month: 'long',
-              day: 'numeric'
-            })}
-          </DialogTitle>
+      <DialogContent className="bg-[#FFF8E7] border-2 border-[#E07A5F] max-w-4xl overflow-y-auto max-h-[85vh] p-6 sm:p-8 rounded-2xl shadow-2xl">
+        <DialogHeader className="mb-4">
+          <DialogTitle className="text-2xl font-serif text-[#8B7355]">My Memory</DialogTitle>
         </DialogHeader>
-
-        <div className="space-y-4">
-          {/* Display paragraphs with associated images */}
-          {paragraphs.map((paragraph, index) => (
-            <div key={index} className="space-y-3">
-              <Card className="p-6 bg-cream border-sage">
-                <p className="text-lg text-softBrown leading-relaxed">
-                  {paragraph}
-                </p>
-              </Card>
-
-              {/* Show images mapped to this paragraph */}
-              {imageUrls.length > 0 && (
-                <div className="grid grid-cols-2 gap-4">
-                  {entry.imageIds.map((imageId, imgIndex) => {
-                    // Check if this image is mapped to current paragraph
-                    if (imageParagraphMapping[imageId] === index && imageUrls[imgIndex]) {
-                      return (
-                        <img
-                          key={imageId}
-                          src={imageUrls[imgIndex]}
-                          alt={entry.llmResponse?.imageDescriptions?.[imageId] || `Memory ${imgIndex + 1}`}
-                          className="rounded-lg w-full h-48 object-cover"
-                        />
-                      );
-                    }
-                    return null;
-                  })}
-                </div>
-              )}
+        <div className="overflow-y-auto pr-2">
+          {isLoadingImages ? (
+            <div className="flex justify-center items-center py-12">
+              <div className="w-12 h-12 border-4 border-terracotta/20 border-t-terracotta rounded-full animate-spin" />
             </div>
-          ))}
+          ) : (
+            <DiaryModal paragraphs={paragraphs} images={images} />
+          )}
         </div>
       </DialogContent>
     </Dialog>
