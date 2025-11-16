@@ -1,14 +1,16 @@
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { Input } from "@/components/ui/input"
 
 
-export default function InitialPage() {
+export default function InitialPage({ onSubmit }) {
   console.log('[InitialPage] Component rendering');
   
   const [isFading, setIsFading] = useState(false);     // starts false
   const [hide, setHide] = useState(false);             // controls scrolling
   const [opacity, setOpacity] = useState(90);          // starts at 90
   const [visible, setVisible] = useState(true);        // rendered initially
+  const [currentUser, setCurrentUser] = useState("");
 
   useEffect(() => {
   if (!hide) {
@@ -76,12 +78,18 @@ export default function InitialPage() {
             >
             LifeLong is your personal journal that captures your memories through voice and images.
             </p>
-
+            <Input
+              type="text"
+              placeholder="Enter your name"
+              className="mb-5 w-64 text-center"
+              style={{ fontFamily: "var(--font-quicksand)" }}
+              onChange={(e) => setCurrentUser(e.target.value)}
+            />
             <Button
             className="active:opacity-80 active:bg-gray-200 transition-all"
             style={{ fontFamily: "var(--font-quicksand)" }}
             variant="outline"
-            onClick={() => {setIsFading(true); setHide(true)}}
+            onClick={() => {setIsFading(true); setHide(true); onSubmit(currentUser);}}
             >
                 Start Now
             </Button>
