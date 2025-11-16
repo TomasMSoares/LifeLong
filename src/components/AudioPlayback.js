@@ -2,8 +2,11 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
 
+/**
+ * Compact audio playback for diary entries
+ * Just play button and progress bar without extra chrome
+ */
 export default function AudioPlayback({ audioBlob }) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [duration, setDuration] = useState(0);
@@ -65,18 +68,10 @@ export default function AudioPlayback({ audioBlob }) {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  if (!audioBlob) {
-    return (
-      <Card className="p-6 bg-cream border-sage">
-        <p className="text-softBrown text-center">No audio recorded yet</p>
-      </Card>
-    );
-  }
+  if (!audioBlob) return null;
 
   return (
-    <Card className="p-6 bg-cream border-sage">
-      <h3 className="text-lg font-semibold text-softBrown mb-4">Your Recording</h3>
-      
+    <div className="bg-[#FFF8E7] border border-[#E07A5F]/20 rounded-lg p-3">
       <audio
         ref={audioRef}
         onTimeUpdate={handleTimeUpdate}
@@ -85,28 +80,29 @@ export default function AudioPlayback({ audioBlob }) {
         className="hidden"
       />
 
-      <div className="space-y-4">
+      <div className="flex items-center gap-3">
         <Button
           onClick={handlePlayPause}
-          className="w-full bg-terracotta hover:bg-terracotta/90 text-white"
+          size="sm"
+          className="bg-[#E07A5F] hover:bg-[#E07A5F]/90 text-white h-8 px-4"
           disabled={!audioBlob}
         >
-          {isPlaying ? '⏸ Pause' : '▶ Play'}
+          {isPlaying ? '⏸' : '▶'}
         </Button>
 
         {duration > 0 && (
-          <div className="flex items-center justify-between text-sm text-softBrown">
-            <span>{formatTime(currentTime)}</span>
-            <div className="flex-1 mx-4 bg-sage/20 rounded-full h-2 overflow-hidden">
+          <div className="flex items-center gap-2 flex-1 text-xs text-[#8B7355]">
+            <span className="min-w-[35px]">{formatTime(currentTime)}</span>
+            <div className="flex-1 bg-[#E07A5F]/20 rounded-full h-1.5 overflow-hidden">
               <div 
-                className="bg-terracotta h-full transition-all duration-100"
+                className="bg-[#E07A5F] h-full transition-all duration-100"
                 style={{ width: `${(currentTime / duration) * 100}%` }}
               />
             </div>
-            <span>{formatTime(duration)}</span>
+            <span className="min-w-[35px]">{formatTime(duration)}</span>
           </div>
         )}
       </div>
-    </Card>
+    </div>
   );
 }
