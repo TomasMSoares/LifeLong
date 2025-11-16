@@ -78,11 +78,11 @@ export default function EntryDetailModal({ entry, onClose }) {
 
   return (
     <Dialog open={!!entry} onOpenChange={onClose}>
-      <DialogContent className="bg-[#FFF8E7] border-2 border-[#E07A5F] max-w-4xl overflow-y-auto max-h-[85vh] p-6 sm:p-8 rounded-2xl shadow-2xl">
+      <DialogContent className="bg-[#FFF8E7] border-2 border-[#E07A5F] max-w-4xl max-h-[85vh] overflow-y-auto p-6 sm:p-8 rounded-2xl shadow-2xl">
         <DialogHeader className="mb-4">
           <DialogTitle className="text-2xl font-serif text-[#8B7355]">My Memory</DialogTitle>
         </DialogHeader>
-        <div className="overflow-y-auto pr-2">
+        <div>
           {isLoadingImages ? (
             <div className="flex justify-center items-center py-12">
               <div className="w-12 h-12 border-4 border-terracotta/20 border-t-terracotta rounded-full animate-spin" />
