@@ -105,8 +105,6 @@ export async function POST(request) {
     });
 
     const rawText = response.text || '{}';
-    console.log('Gemini raw response:', rawText);
-    console.log('Response length:', rawText.length);
     
     let paragraphs, imageParagraphMapping, imageDescriptions;
     try {
