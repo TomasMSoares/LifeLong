@@ -47,10 +47,10 @@ export default function InitialPage({ onSubmit }) {
   }
 
   return (
-    <div>
+    <div className="fixed inset-0 z-30" style={{ height: '100vh', height: '100dvh' }}>
       <div
         className={`
-          fixed inset-0 z-30 flex flex-col items-center justify-center min-h-[100dvh] overflow-hidden
+          w-full h-full flex flex-col items-center justify-center overflow-hidden
           transition-all duration-700 ease-out
           ${isFading ? 'opacity-0 scale-95' : 'opacity-100 scale-100'}
         `}
@@ -63,21 +63,24 @@ export default function InitialPage({ onSubmit }) {
       >
         {/* Floating decorative elements */}
         <div className={`absolute inset-0 overflow-hidden pointer-events-none transition-all duration-700 ${isFading ? 'opacity-0 blur-sm' : 'opacity-100'}`}>
-          <div className="absolute top-20 left-10 animate-glow"
-            style={{ backgroundColor: '#E07A5F', width: '80px', height: '80px', borderRadius: '50%', opacity: 0.15 }}
+          <div className="absolute top-10 md:top-20 -left-10 md:left-10 animate-glow"
+            style={{ backgroundColor: '#E07A5F', width: '120px', height: '120px', borderRadius: '50%', opacity: 0.12 }}
           />
-          <div className="absolute bottom-32 right-16 animate-glow-gold"
-            style={{ backgroundColor: '#F4A259', width: '100px', height: '100px', borderRadius: '50%', opacity: 0.15 }}
+          <div className="absolute bottom-20 md:bottom-32 -right-12 md:right-16 animate-glow-gold"
+            style={{ backgroundColor: '#F4A259', width: '140px', height: '140px', borderRadius: '50%', opacity: 0.12 }}
           />
-          <div className="absolute top-1/3 right-20 animate-glow-sage"
-            style={{ backgroundColor: '#81B29A', width: '60px', height: '60px', borderRadius: '50%', opacity: 0.12 }}
+          <div className="absolute top-1/2 -right-8 md:right-20 animate-glow-sage"
+            style={{ backgroundColor: '#81B29A', width: '100px', height: '100px', borderRadius: '50%', opacity: 0.1 }}
           />
         </div>
 
         {/* Main content card */}
         <div
           className={`
-            rounded-3xl flex flex-col items-center justify-center px-8 py-12 mx-4 max-w-2xl w-full relative
+            flex flex-col items-center justify-center
+            px-6 py-8 sm:px-8 sm:py-12
+            mx-4 sm:mx-6
+            max-w-2xl w-full relative
             transition-all duration-700 ease-out
             ${isFading ? 'opacity-0 scale-90 -translate-y-8' : 'opacity-100 scale-100 translate-y-0 animate-fade-in'}
           `}
@@ -87,23 +90,24 @@ export default function InitialPage({ onSubmit }) {
           }}
         >
           {/* Icon header */}
-          <div className="flex items-center gap-3 mb-6 animate-float">
+          <div className="flex items-center gap-3 mb-4 sm:mb-6 animate-float">
             <BookHeart
-              size={56}
+              size={48}
               strokeWidth={1.5}
               style={{ color: '#E07A5F' }}
+              className="sm:w-14 sm:h-14"
             />
             <Sparkles
-              size={32}
+              size={24}
               strokeWidth={2}
-              style={{ color: '#F4A259', position: 'absolute', marginLeft: '40px', marginTop: '-20px' }}
-              className="animate-pulse"
+              style={{ color: '#F4A259', position: 'absolute', marginLeft: '36px', marginTop: '-16px' }}
+              className="animate-pulse sm:w-8 sm:h-8"
             />
           </div>
 
           {/* Title */}
           <h1
-            className="text-5xl md:text-6xl font-serif text-center mb-4 animate-slide-in-left"
+            className="text-4xl sm:text-5xl md:text-6xl font-serif text-center mb-3 sm:mb-4 animate-slide-in-left px-2"
             style={{
               fontFamily: "var(--font-quicksand)",
               fontWeight: 700,
@@ -116,7 +120,7 @@ export default function InitialPage({ onSubmit }) {
 
           {/* Subtitle */}
           <p
-            className="text-xl text-center mb-8 max-w-lg leading-relaxed animate-slide-in-right"
+            className="text-base sm:text-xl text-center mb-6 sm:mb-8 max-w-lg leading-relaxed animate-slide-in-right px-4"
             style={{
               fontFamily: "var(--font-quicksand)",
               fontWeight: 500,
@@ -130,37 +134,37 @@ export default function InitialPage({ onSubmit }) {
           </p>
 
           {/* Feature highlights */}
-          <div className="flex flex-wrap gap-6 justify-center mb-10 animate-fade-in" style={{ animationDelay: '0.2s' }}>
+          <div className="flex flex-wrap gap-4 sm:gap-6 justify-center mb-8 sm:mb-10 animate-fade-in px-2" style={{ animationDelay: '0.2s' }}>
             <div className="flex items-center gap-2">
               <div className="p-2 rounded-full" style={{ backgroundColor: '#FFF8E7' }}>
-                <Mic size={20} style={{ color: '#E07A5F' }} />
+                <Mic size={18} style={{ color: '#E07A5F' }} className="sm:w-5 sm:h-5" />
               </div>
-              <span style={{ fontFamily: "var(--font-quicksand)", color: '#8B7355', fontSize: '15px' }}>
+              <span style={{ fontFamily: "var(--font-quicksand)", color: '#8B7355', fontSize: '14px' }} className="sm:text-base">
                 Voice Stories
               </span>
             </div>
             <div className="flex items-center gap-2">
               <div className="p-2 rounded-full" style={{ backgroundColor: '#FFF8E7' }}>
-                <Image size={20} style={{ color: '#F4A259' }} />
+                <Image size={18} style={{ color: '#F4A259' }} className="sm:w-5 sm:h-5" />
               </div>
-              <span style={{ fontFamily: "var(--font-quicksand)", color: '#8B7355', fontSize: '15px' }}>
+              <span style={{ fontFamily: "var(--font-quicksand)", color: '#8B7355', fontSize: '14px' }} className="sm:text-base">
                 Photo Memories
               </span>
             </div>
             <div className="flex items-center gap-2">
               <div className="p-2 rounded-full" style={{ backgroundColor: '#FFF8E7' }}>
-                <Sparkles size={20} style={{ color: '#81B29A' }} />
+                <Sparkles size={18} style={{ color: '#81B29A' }} className="sm:w-5 sm:h-5" />
               </div>
-              <span style={{ fontFamily: "var(--font-quicksand)", color: '#8B7355', fontSize: '15px' }}>
+              <span style={{ fontFamily: "var(--font-quicksand)", color: '#8B7355', fontSize: '14px' }} className="sm:text-base">
                 AI Magic
               </span>
             </div>
           </div>
 
           {/* Name input */}
-          <div className="w-full max-w-md mb-8">
+          <div className="w-full max-w-md mb-6 sm:mb-8 px-2">
             <label
-              className="block text-center mb-3 text-lg"
+              className="block text-center mb-3 text-base sm:text-lg"
               style={{ fontFamily: "var(--font-quicksand)", fontWeight: 600, color: '#8B7355' }}
             >
               What shall we call you?
@@ -168,7 +172,7 @@ export default function InitialPage({ onSubmit }) {
             <Input
               type="text"
               placeholder="Enter your name"
-              className="text-center text-xl py-6 border-2 focus:ring-4"
+              className="text-center text-lg sm:text-xl py-5 sm:py-6 border-2 focus:ring-4"
               style={{
                 fontFamily: "var(--font-quicksand)",
                 borderColor: '#F5E6D3',
@@ -187,7 +191,7 @@ export default function InitialPage({ onSubmit }) {
 
           {/* CTA Button */}
           <Button
-            className="px-10 py-7 text-xl font-semibold rounded-2xl transition-all duration-300 hover:scale-105 active:scale-95 flex items-center gap-3 animate-float shadow-lg"
+            className="px-8 py-6 sm:px-10 sm:py-7 text-lg sm:text-xl font-semibold rounded-2xl transition-all duration-300 hover:scale-105 active:scale-95 flex items-center gap-3 animate-float shadow-lg w-full sm:w-auto"
             style={{
               fontFamily: "var(--font-quicksand)",
               backgroundColor: '#E07A5F',
@@ -204,12 +208,12 @@ export default function InitialPage({ onSubmit }) {
             }}
           >
             Begin Your Journey
-            <ArrowRight size={24} className="animate-pulse" />
+            <ArrowRight size={20} className="animate-pulse sm:w-6 sm:h-6" />
           </Button>
 
           {/* Bottom decorative text */}
           <p
-            className="mt-8 text-center text-sm italic opacity-70"
+            className="mt-6 sm:mt-8 text-center text-xs sm:text-sm italic opacity-70 px-4"
             style={{ fontFamily: "var(--font-quicksand)", color: '#8B7355' }}
           >
             Every moment is a memory waiting to be cherished
