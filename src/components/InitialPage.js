@@ -6,11 +6,26 @@ export default function InitialPage() {
   console.log('[InitialPage] Component rendering');
   
   const [isFading, setIsFading] = useState(false);     // starts false
+  const [hide, setHide] = useState(false);             // controls scrolling
   const [opacity, setOpacity] = useState(98);          // starts at 90
   const [visible, setVisible] = useState(true);        // rendered initially
 
   useEffect(() => {
-    console.log('[InitialPage] useEffect - isFading:', isFading);
+  if (!hide) {
+    // Disable scrolling
+    document.body.style.overflow = "hidden";
+  } else {
+    // Re-enable scrolling
+    document.body.style.overflow = "";
+  }
+
+  return () => {
+    document.body.style.overflow = "";
+  };
+}, [hide]);
+
+
+  useEffect(() => {
     if (!isFading) return;
 
     const interval = setInterval(() => {
@@ -41,35 +56,36 @@ export default function InitialPage() {
         className={`
           fixed inset-0 z-30
           flex flex-col items-center justify-center
-          transition-opacity duration-300 bg-white
+          transition-opacity duration-300 bg-white min-h-[100dvh]
         `}
-        style={{ opacity: opacity / 100, backgroundColor: `rgba(255,255,255,${opacity/100})` }}
+        style={{ backgroundColor: `rgba(255,255,255,${opacity/100})` }}
       >
-        <h1
-          className="text-4xl font-serif text-center mt-10 mb-5 "
-          style={{ fontFamily: "var(--font-quicksand)" }}
+        <div className=' rounded-lg flex flex-col items-center justify-center p-2 mx-4'
+          style={{backgroundColor: '#ffffff', opacity: `${opacity/100}`,  boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.08)"}}
         >
-          Welcome to LifeLong
-        </h1>
+            <h1
+            className="text-4xl  font-serif text-center mt-10 mb-5 "
+            style={{ fontFamily: "var(--font-quicksand)", fontWeight: 600 }}
+            >
+            Welcome to LifeLong
+            </h1>
 
-        <p
-          className="text-center mx-10 mb-5"
-          style={{ fontFamily: "var(--font-quicksand)" }}
-        >
-          LifeLong is your personal journal that captures your memories through voice and images.
-        </p>
+            <p
+            className="text-center mx-10 mb-5"
+            style={{ fontFamily: "var(--font-quicksand)", fontWeight: 500 }}
+            >
+            LifeLong is your personal journal that captures your memories through voice and images.
+            </p>
 
-        <Button
-          className="active:opacity-80 active:bg-gray-200 transition-all"
-          style={{ fontFamily: "var(--font-quicksand)" }}
-          variant="outline"
-          onClick={() => {
-            console.log('[InitialPage] Start Now button clicked');
-            setIsFading(true);
-          }}
-        >
-            Start Now
-        </Button>
+            <Button
+            className="active:opacity-80 active:bg-gray-200 transition-all"
+            style={{ fontFamily: "var(--font-quicksand)" }}
+            variant="outline"
+            onClick={() => {setIsFading(true); setHide(true)}}
+            >
+                Start Now
+            </Button>
+        </div>
       </div>
     </div>
   );
