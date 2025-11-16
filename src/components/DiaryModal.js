@@ -15,9 +15,9 @@ export default function DiaryModal({ paragraphs, images }) {
   return (
     <div className="flex flex-col items-center gap-8 px-4 py-6">
       {paragraphs.map((text, index) => {
-        const imgs = images ? Object.keys(images).filter((file) => {
-          const meta = images[file];
-          // meta expected to be [paragraphIndex, description]
+        const imgs = images ? Object.keys(images).filter((imageId) => {
+          const meta = images[imageId];
+          // meta expected to be [paragraphIndex, description, blobUrl]
           return Array.isArray(meta) && Number(meta[0]) === index;
         }) : [];
 
@@ -35,22 +35,25 @@ export default function DiaryModal({ paragraphs, images }) {
             </p>
 
             {/* Images for this paragraph (render all) */}
-            {imgs.map((file) => {
-              const meta = images[file] || [];
+            {imgs.map((imageId) => {
+              const meta = images[imageId] || [];
               const description = meta[1] ?? '';
+              const blobUrl = meta[2] || null;
               const random = randomPercent();
               const randomPostIt = randomPostIti();
 
+              if (!blobUrl) return null;
+
               return (
                 <div
-                  key={file}
+                  key={imageId}
                   className="relative w-full mb-12 px-4"
                 >
                   {/* Image with cleaner styling */}
                   <div className="relative overflow-hidden rounded-xl shadow-lg">
                     <img
-                      src={`/${file}`}
-                      alt={`Paragraph ${index} image - ${file}`}
+                      src={blobUrl}
+                      alt={`Paragraph ${index} image - ${description || 'Memory photo'}`}
                       className="w-full h-auto object-cover"
                     />
                   </div>
