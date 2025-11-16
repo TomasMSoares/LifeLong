@@ -3,16 +3,20 @@ import { Button } from '@/components/ui/button';
 
 
 export default function InitialPage() {
+  console.log('[InitialPage] Component rendering');
+  
   const [isFading, setIsFading] = useState(false);     // starts false
   const [opacity, setOpacity] = useState(98);          // starts at 90
   const [visible, setVisible] = useState(true);        // rendered initially
 
   useEffect(() => {
+    console.log('[InitialPage] useEffect - isFading:', isFading);
     if (!isFading) return;
 
     const interval = setInterval(() => {
       setOpacity(prev => {
         if (prev <= 0) {
+          console.log('[InitialPage] Fade complete, hiding component');
           clearInterval(interval);
           setVisible(false);  // remove from DOM
           return 0;
@@ -24,7 +28,12 @@ export default function InitialPage() {
     return () => clearInterval(interval);
   }, [isFading]);
 
-  if (!visible) return null;
+  console.log('[InitialPage] Render state - visible:', visible, 'opacity:', opacity, 'isFading:', isFading);
+  
+  if (!visible) {
+    console.log('[InitialPage] Not visible, returning null');
+    return null;
+  }
 
   return (
     <div>
@@ -54,7 +63,10 @@ export default function InitialPage() {
           className="active:opacity-80 active:bg-gray-200 transition-all"
           style={{ fontFamily: "var(--font-quicksand)" }}
           variant="outline"
-          onClick={() => setIsFading(true)}
+          onClick={() => {
+            console.log('[InitialPage] Start Now button clicked');
+            setIsFading(true);
+          }}
         >
             Start Now
         </Button>

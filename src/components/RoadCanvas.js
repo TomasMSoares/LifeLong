@@ -2,6 +2,7 @@
 
 import { useState, useRef, useCallback, useEffect, useMemo, memo } from 'react';
 import Image from 'next/image';
+import { getImageUrl } from '@/lib/imageDB';
 
 const NODE_SPACING = 220;
 const NODE_RADIUS = 70;
@@ -44,10 +45,12 @@ function CurvedText({ text, radius, fontSize = 16, className = '' }) {
 
 // Add Memory node (top node with heart and + button) - Memoized
 const AddMemoryNode = memo(function AddMemoryNode({ onClick }) {
+  console.log('[AddMemoryNode] Rendering');
   const [isHovered, setIsHovered] = useState(false);
   const [isClicked, setIsClicked] = useState(false);
 
   const handleClick = useCallback(() => {
+    console.log('[AddMemoryNode] Clicked');
     setIsClicked(true);
     setTimeout(() => setIsClicked(false), 300);
     if (onClick) onClick();
@@ -83,8 +86,8 @@ const AddMemoryNode = memo(function AddMemoryNode({ onClick }) {
           {/* Curved "ADD MEMORY" text */}
           <CurvedText
             text="ADD MEMORY"
-            radius={NODE_RADIUS * 1.6}
-            fontSize={14}
+            radius={NODE_RADIUS * 1.7}
+            fontSize={20}
             className="text-terracotta font-bold"
           />
 
@@ -128,22 +131,55 @@ const AddMemoryNode = memo(function AddMemoryNode({ onClick }) {
 
 // Regular entry node with glowing memory orb - Memoized
 const EntryNode = memo(function EntryNode({ entry, onClick }) {
+  console.log('[EntryNode] Rendering entry:', entry);
   const [isHovered, setIsHovered] = useState(false);
+  const [imageUrl, setImageUrl] = useState(null);
 
   const dateText = useMemo(() => {
+    if (!entry || !entry.date) {
+      console.warn('[EntryNode] Entry or entry.date is missing:', entry);
+      return 'No Date';
+    }
     const date = new Date(entry.date);
     return date.toLocaleDateString('en-GB', {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric'
     }).replace(/\//g, '/');
-  }, [entry.date]);
+  }, [entry]);
 
   const handleClick = useCallback(() => {
+    console.log('[EntryNode] Clicked entry:', entry);
     if (onClick) onClick(entry);
   }, [onClick, entry]);
 
-  const hasImage = entry.images && entry.images.length > 0;
+  const hasImage = entry && entry.imageIds && entry.imageIds.length > 0;
+
+  // Load first image URL
+  useEffect(() => {
+    if (!hasImage) {
+      setImageUrl(null);
+      return;
+    }
+
+    let cancelled = false;
+
+    async function loadImage() {
+      const url = await getImageUrl(entry.imageIds[0]);
+      if (!cancelled) {
+        setImageUrl(url);
+      }
+    }
+
+    loadImage();
+
+    return () => {
+      cancelled = true;
+      if (imageUrl) {
+        URL.revokeObjectURL(imageUrl);
+      }
+    };
+  }, [entry, hasImage]);
 
   return (
     <div className="relative flex items-center justify-center pt-8 pb-5">
@@ -165,10 +201,10 @@ const EntryNode = memo(function EntryNode({ entry, onClick }) {
           }}
         >
           {/* Image inside orb (if exists) */}
-          {hasImage ? (
+          {hasImage && imageUrl ? (
             <div className="absolute inset-0 rounded-full overflow-hidden">
               <img
-                src={entry.images[0]}
+                src={imageUrl}
                 alt="Memory"
                 className="w-full h-full object-cover opacity-85"
                 style={{
@@ -254,16 +290,27 @@ function DottedLine({ isAddMemory }) {
 }
 
 export default function RoadCanvas({ entries, onEntryClick }) {
+  console.log('[RoadCanvas] Component rendering with entries:', entries);
+  
   const [scale, setScale] = useState(1.0);
   const scrollContainerRef = useRef(null);
   const timelineRef = useRef(null);
   const lastDistanceRef = useRef(0);
 
-  // Memoize positions to prevent recalculation
-  const positions = useMemo(() => [
-    { entry: null, isCurrent: true },
-    ...entries.map((entry) => ({ entry, isCurrent: false }))
-  ], [entries]);
+  // Memoize positions to prevent recalculation - sorted by date (newest first)
+  const positions = useMemo(() => {
+    console.log('[RoadCanvas] Calculating positions for entries:', entries);
+    const sortedEntries = [...entries].sort((a, b) => 
+      new Date(b.date) - new Date(a.date)
+    );
+    
+    const result = [
+      { entry: null, isCurrent: true },
+      ...sortedEntries.map((entry) => ({ entry, isCurrent: false }))
+    ];
+    console.log('[RoadCanvas] Positions calculated:', result);
+    return result;
+  }, [entries]);
 
   // Handle pinch zoom
   const handleTouchStart = useCallback((e) => {
@@ -350,24 +397,29 @@ export default function RoadCanvas({ entries, onEntryClick }) {
         >
           {/* Timeline nodes */}
           <div className="relative flex flex-col items-center w-full max-w-md">
-            {positions.map((pos, i) => (
-              <div
-                key={pos.entry?.id || 'current'}
-                className="relative w-full flex flex-col items-center"
-              >
-                {pos.isCurrent ? (
-                  <AddMemoryNode onClick={() => onEntryClick && onEntryClick(null)} />
-                ) : (
-                  <EntryNode entry={pos.entry} onClick={onEntryClick} />
-                )}
+            {positions.map((pos, i) => {
+              // Generate unique key: use entry.id if available, otherwise use index for "add memory" node
+              const key = pos.isCurrent ? 'add-memory-node' : (pos.entry?.id || `entry-${i}`);
+              
+              return (
+                <div
+                  key={key}
+                  className="relative w-full flex flex-col items-center"
+                >
+                  {pos.isCurrent ? (
+                    <AddMemoryNode onClick={() => onEntryClick && onEntryClick(null)} />
+                  ) : (
+                    <EntryNode entry={pos.entry} onClick={onEntryClick} />
+                  )}
 
-                {/* Dotted line connecting to next node */}
-                {i < positions.length - 1 && <DottedLine isAddMemory={pos.isCurrent} />}
-              </div>
-            ))}
+                  {/* Dotted line connecting to next node */}
+                  {i < positions.length - 1 && <DottedLine isAddMemory={pos.isCurrent} />}
+                </div>
+              );
+            })}
 
             {/* Bottom padding for comfortable scrolling */}
-            <div className="h-96" />
+            <div className="h-20" />
           </div>
         </div>
       </div>

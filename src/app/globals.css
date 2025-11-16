@@ -434,6 +434,154 @@
     animation: click-burst 0.3s ease-out;
   }
 
+  /* Multi-step wizard animations */
+  @keyframes microphone-pulse {
+    0%, 100% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.05);
+    }
+  }
+
+  @keyframes ripple-1 {
+    0% {
+      transform: scale(1);
+      opacity: 1;
+    }
+    100% {
+      transform: scale(1.4);
+      opacity: 0;
+    }
+  }
+
+  @keyframes ripple-2 {
+    0% {
+      transform: scale(1);
+      opacity: 1;
+    }
+    100% {
+      transform: scale(1.6);
+      opacity: 0;
+    }
+  }
+
+  @keyframes ripple-3 {
+    0% {
+      transform: scale(1);
+      opacity: 1;
+    }
+    100% {
+      transform: scale(1.8);
+      opacity: 0;
+    }
+  }
+
+  @keyframes sound-wave {
+    0%, 100% {
+      transform: scaleY(0.5);
+      opacity: 0.6;
+    }
+    50% {
+      transform: scaleY(1.5);
+      opacity: 1;
+    }
+  }
+
+  @keyframes recording-glow {
+    0%, 100% {
+      box-shadow:
+        0 0 20px rgba(239, 68, 68, 0.6),
+        0 0 40px rgba(239, 68, 68, 0.4),
+        inset 0 0 20px rgba(255, 255, 255, 0.3);
+    }
+    50% {
+      box-shadow:
+        0 0 30px rgba(239, 68, 68, 0.8),
+        0 0 60px rgba(239, 68, 68, 0.6),
+        inset 0 0 30px rgba(255, 255, 255, 0.4);
+    }
+  }
+
+  @keyframes loading-spinner {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+
+  @keyframes loading-dots {
+    0%, 20% {
+      opacity: 0.3;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 1;
+      transform: scale(1.2);
+    }
+    100% {
+      opacity: 0.3;
+      transform: scale(1);
+    }
+  }
+
+  @keyframes slide-in-right {
+    from {
+      opacity: 0;
+      transform: translateX(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes slide-in-left {
+    from {
+      opacity: 0;
+      transform: translateX(-20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  .animate-microphone-pulse {
+    animation: microphone-pulse 1.5s ease-in-out infinite;
+  }
+
+  .animate-recording-glow {
+    animation: recording-glow 2s ease-in-out infinite;
+  }
+
+  .animate-loading-spinner {
+    animation: loading-spinner 1s linear infinite;
+  }
+
+  .animate-slide-in-right {
+    animation: slide-in-right 0.3s ease-out;
+  }
+
+  .animate-slide-in-left {
+    animation: slide-in-left 0.3s ease-out;
+  }
+
+  .animate-fade-in {
+    animation: fade-in 0.3s ease-out;
+  }
+
 }
 
 

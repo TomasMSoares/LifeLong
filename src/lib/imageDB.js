@@ -5,7 +5,7 @@
 import imageCompression from 'browser-image-compression';
 
 const DB_NAME = 'LifeLongDB';
-const DB_VERSION = 1;
+const DB_VERSION = 3; // Bumped to force migration and create 'images' store
 const STORE_NAME = 'images';
 
 /**
@@ -21,13 +21,20 @@ function openDB() {
 
     request.onupgradeneeded = (event) => {
       const db = event.target.result;
-      
+
       // Create object store for images if it doesn't exist
       if (!db.objectStoreNames.contains(STORE_NAME)) {
         const objectStore = db.createObjectStore(STORE_NAME, { keyPath: 'id' });
         objectStore.createIndex('entryId', 'entryId', { unique: false });
         objectStore.createIndex('timestamp', 'timestamp', { unique: false });
         objectStore.createIndex('paragraphIndex', 'paragraphIndex', { unique: false });
+      }
+
+      // Create entries store if it doesn't exist (for compatibility with storage.js)
+      if (!db.objectStoreNames.contains('entries')) {
+        const entriesStore = db.createObjectStore('entries', { keyPath: 'id' });
+        entriesStore.createIndex('date', 'date', { unique: false });
+        entriesStore.createIndex('timestamp', 'timestamp', { unique: false });
       }
     };
   });
