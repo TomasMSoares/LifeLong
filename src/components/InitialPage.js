@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input"
 import { BookHeart, Sparkles, Image, Mic, ArrowRight } from 'lucide-react';
 
 
-export default function InitialPage({ onSubmit }) {
+export default function InitialPage({ onSubmit, existingUser }) {
   console.log('[InitialPage] Component rendering');
 
   const [isFading, setIsFading] = useState(false);     // starts false
@@ -161,32 +161,47 @@ export default function InitialPage({ onSubmit }) {
             </div>
           </div>
 
-          {/* Name input */}
+          {/* Name input or welcome message */}
           <div className="w-full max-w-md mb-6 sm:mb-8 px-2">
-            <label
-              className="block text-center mb-3 text-base sm:text-lg"
-              style={{ fontFamily: "var(--font-quicksand)", fontWeight: 600, color: '#8B7355' }}
-            >
-              What shall we call you?
-            </label>
-            <Input
-              type="text"
-              placeholder="Enter your name"
-              className="text-center text-lg sm:text-xl py-5 sm:py-6 border-2 focus:ring-4"
-              style={{
-                fontFamily: "var(--font-quicksand)",
-                borderColor: '#F5E6D3',
-                backgroundColor: '#FFFCF7'
-              }}
-              onChange={(e) => setCurrentUser(e.target.value)}
-              onKeyPress={(e) => {
-                if (e.key === 'Enter' && currentUser.trim()) {
-                  setIsFading(true);
-                  setHide(true);
-                  onSubmit(currentUser);
-                }
-              }}
-            />
+            {existingUser ? (
+              <p
+                className="text-center text-xl sm:text-2xl"
+                style={{ 
+                  fontFamily: "var(--font-quicksand)", 
+                  fontWeight: 600, 
+                  color: '#8B7355'
+                }}
+              >
+                Your memories await you, <span style={{ color: '#E07A5F' }}>{existingUser}</span>
+              </p>
+            ) : (
+              <>
+                <label
+                  className="block text-center mb-3 text-base sm:text-lg"
+                  style={{ fontFamily: "var(--font-quicksand)", fontWeight: 600, color: '#8B7355' }}
+                >
+                  What shall we call you?
+                </label>
+                <Input
+                  type="text"
+                  placeholder="Enter your name"
+                  className="text-center text-lg sm:text-xl py-5 sm:py-6 border-2 focus:ring-4"
+                  style={{
+                    fontFamily: "var(--font-quicksand)",
+                    borderColor: '#F5E6D3',
+                    backgroundColor: '#FFFCF7'
+                  }}
+                  onChange={(e) => setCurrentUser(e.target.value)}
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter' && currentUser.trim()) {
+                      setIsFading(true);
+                      setHide(true);
+                      onSubmit(currentUser);
+                    }
+                  }}
+                />
+              </>
+            )}
           </div>
 
           {/* CTA Button */}
@@ -200,14 +215,16 @@ export default function InitialPage({ onSubmit }) {
               boxShadow: '0 8px 20px rgba(224, 122, 95, 0.4)'
             }}
             onClick={() => {
-              if (currentUser.trim()) {
+              if (existingUser || currentUser.trim()) {
                 setIsFading(true);
                 setHide(true);
-                onSubmit(currentUser);
+                if (!existingUser) {
+                  onSubmit(currentUser);
+                }
               }
             }}
           >
-            Begin Your Journey
+            {existingUser ? 'Go to Memories' : 'Begin Your Journey'}
             <ArrowRight size={20} className="animate-pulse sm:w-6 sm:h-6" />
           </Button>
 
