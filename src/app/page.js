@@ -19,7 +19,7 @@ export default function Home() {
   const [showCreate, setShowCreate] = useState(false);
   const [selectedEntry, setSelectedEntry] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [user, setUser] = useState("USER_PLACEHOLDER");
+  const [user, setUser] = useState("");
   // Load entries on mount
   useEffect(() => {
     async function fetchEntries() {
@@ -50,7 +50,7 @@ export default function Home() {
         : [];
 
       // Generate diary entry with LLM
-      const llmResponse = await generateDiaryEntry(transcript, "USER_PLACEHOLDER", imageData);
+      const llmResponse = await generateDiaryEntry(transcript, user, imageData);
 
       // Save complete entry to database
       const entryData = {
